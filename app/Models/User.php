@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'tenant_id',
     ];
 
     /**
@@ -44,5 +45,45 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the tenant that owns the user.
+     */
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    /**
+     * Get the tenants that this user owns.
+     */
+    public function ownedTenants()
+    {
+        return $this->hasMany(Tenant::class, 'user_id');
+    }
+
+    /**
+     * Scope to get users by tenant.
+     */
+    public function scopeByTenant($query, $tenantId)
+    {
+        return $query->where('tenant_id', $tenantId);
+    }
+
+    /**
+     * Check if user belongs to a specific tenant.
+     */
+    public function belongsToTenant($tenantId): bool
+    {
+        return $this->tenant_id == $tenantId;
+    }
+
+    /**
+     * Check if user owns a specific tenant.
+     */
+    public function ownsTenant($tenantId): bool
+    {
+        return $this->ownedTenants()->where('id', $tenantId)->exists();
     }
 }
