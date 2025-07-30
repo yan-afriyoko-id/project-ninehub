@@ -27,6 +27,7 @@ class StoreContactRequest extends FormRequest
             'email' => 'required|email|unique:contacts,email,' . $this->route('contact'),
             'phone' => 'nullable|string|max:20',
             'job_title' => 'nullable|string|max:255',
+            'company_id' => 'required|exists:companies,id',
         ];
     }
 }

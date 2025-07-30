@@ -9,7 +9,7 @@ class ContactRepository implements ContactRepositoryInterface
 {
     public function all(): iterable
     {
-        return Contact::all();
+        return Contact::with('company')->get();
     }
 
     public function create(array $data): Contact
@@ -19,7 +19,7 @@ class ContactRepository implements ContactRepositoryInterface
 
     public function getById($id): ?Contact
     {
-        return Contact::find($id);
+        return Contact::with('company')->find($id);
     }
 
     public function update(Contact $Contact, array $data): Contact

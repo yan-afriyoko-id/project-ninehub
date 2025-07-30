@@ -15,5 +15,11 @@ class Contact extends Model
         'email',
         'phone',
         'job_title',
+        'company_id',
     ];
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
 }

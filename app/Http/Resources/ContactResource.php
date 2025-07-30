@@ -25,6 +25,7 @@ class ContactResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->phone,
             'job_title' => $this->job_title,
+            'company' => new CompanyResource($this->whenLoaded('company')),
         ];
     }
 }
