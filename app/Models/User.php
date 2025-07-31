@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use App\Traits\HasModulePermissions;
@@ -49,7 +50,7 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-  
+
     public function profile()
     {
         return $this->hasOne(Profile::class);
