@@ -124,4 +124,83 @@ class Tenant extends Model
     {
         return $query->where('user_id', $userId);
     }
+
+    /**
+     * Get the modules that belong to this tenant.
+     */
+    public function modules()
+    {
+        return $this->belongsToMany(Module::class, 'tenant_modules')
+            ->withPivot(['is_active', 'custom_permissions', 'activated_at', 'expires_at'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the active modules for this tenant.
+     */
+    public function activeModules()
+    {
+        return $this->modules()->wherePivot('is_active', true);
+    }
+
+    /**
+     * Check if tenant has access to a specific module.
+     */
+    public function hasModule($moduleSlug): bool
+    {
+        return $this->activeModules()->where('slug', $moduleSlug)->exists();
+    }
+
+    /**
+     * Assign a module to this tenant.
+     */
+    public function assignModule($moduleId, $customPermissions = null, $expiresAt = null): void
+    {
+        $this->modules()->attach($moduleId, [
+            'is_active' => true,
+            'custom_permissions' => $customPermissions,
+            'activated_at' => now(),
+            'expires_at' => $expiresAt,
+        ]);
+    }
+
+    /**
+     * Remove a module from this tenant.
+     */
+    public function removeModule($moduleId): void
+    {
+        $this->modules()->detach($moduleId);
+    }
+
+    /**
+     * Activate a module for this tenant.
+     */
+    public function activateModule($moduleId): void
+    {
+        $this->modules()->updateExistingPivot($moduleId, [
+            'is_active' => true,
+            'activated_at' => now(),
+        ]);
+    }
+
+    /**
+     * Deactivate a module for this tenant.
+     */
+    public function deactivateModule($moduleId): void
+    {
+        $this->modules()->updateExistingPivot($moduleId, [
+            'is_active' => false,
+        ]);
+    }
+
+    /**
+     * Get modules based on plan.
+     */
+    public function getModulesByPlan()
+    {
+        // Get modules based on plan features
+        $planFeatures = $this->plan->features ?? [];
+
+        return Module::whereIn('slug', $planFeatures)->get();
+    }
 }

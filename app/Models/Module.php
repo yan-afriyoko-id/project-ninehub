@@ -92,4 +92,55 @@ class Module extends Model
     {
         return $query->orderBy('order', 'asc');
     }
+
+    /**
+     * Get the tenants that have access to this module.
+     */
+    public function tenants()
+    {
+        return $this->belongsToMany(Tenant::class, 'tenant_modules')
+            ->withPivot(['is_active', 'custom_permissions', 'activated_at', 'expires_at'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the active tenants for this module.
+     */
+    public function activeTenants()
+    {
+        return $this->tenants()->wherePivot('is_active', true);
+    }
+
+    /**
+     * Check if module is assigned to a specific tenant.
+     */
+    public function isAssignedToTenant($tenantId): bool
+    {
+        return $this->activeTenants()->where('tenant_id', $tenantId)->exists();
+    }
+
+    /**
+     * Get custom permissions for a specific tenant.
+     */
+    public function getCustomPermissionsForTenant($tenantId): array
+    {
+        $pivot = $this->tenants()->where('tenant_id', $tenantId)->first()->pivot ?? null;
+
+        if (!$pivot) {
+            return [];
+        }
+
+        return $pivot->custom_permissions ?? [];
+    }
+
+    /**
+     * Get effective permissions for a tenant (combine default + custom).
+     */
+    public function getEffectivePermissionsForTenant($tenantId): array
+    {
+        $defaultPermissions = $this->getModulePermissions();
+        $customPermissions = $this->getCustomPermissionsForTenant($tenantId);
+
+        return array_merge($defaultPermissions, $customPermissions);
+    }
 }
