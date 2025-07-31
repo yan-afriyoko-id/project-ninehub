@@ -5,12 +5,15 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
+use App\Traits\HasModulePermissions;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, Notifiable;
+    use HasFactory, Notifiable, HasRoles, HasModulePermissions, HasApiTokens;
+
 
     /**
      * The attributes that are mass assignable.
@@ -21,6 +24,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'tenant_id',
     ];
 
     /**
@@ -45,7 +49,7 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-
+  
     public function profile()
     {
         return $this->hasOne(Profile::class);
@@ -56,4 +60,43 @@ class User extends Authenticatable
         return $this->hasMany(Company::class);
     }
 
+    /**
+     * Get the tenant that owns the user.
+     */
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    /**
+     * Get the tenants that this user owns.
+     */
+    public function ownedTenants()
+    {
+        return $this->hasMany(Tenant::class, 'user_id');
+    }
+
+    /**
+     * Scope to get users by tenant.
+     */
+    public function scopeByTenant($query, $tenantId)
+    {
+        return $query->where('tenant_id', $tenantId);
+    }
+
+    /**
+     * Check if user belongs to a specific tenant.
+     */
+    public function belongsToTenant($tenantId): bool
+    {
+        return $this->tenant_id == $tenantId;
+    }
+
+    /**
+     * Check if user owns a specific tenant.
+     */
+    public function ownsTenant($tenantId): bool
+    {
+        return $this->ownedTenants()->where('id', $tenantId)->exists();
+    }
 }

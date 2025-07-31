@@ -1,61 +1,255 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# NineHub - Multi-Tenant SaaS Platform
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+NineHub adalah platform SaaS multi-tenant yang dibangun dengan Laravel. Sistem ini mendukung isolasi data per tenant dengan berbagai fitur manajemen tenant yang komprehensif.
 
-## About Laravel
+## Fitur Utama
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### 🏢 Manajemen Tenant
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+-   **Multi-tenant Architecture**: Setiap tenant memiliki data terisolasi
+-   **Domain Management**: Support untuk custom domain dan subdomain
+-   **Plan Management**: Sistem paket Free, Basic, Premium, dan Enterprise
+-   **Trial System**: Sistem trial period untuk tenant baru
+-   **Subscription Management**: Manajemen subscription dan expiry date
+-   **Feature Management**: Kontrol fitur berdasarkan plan tenant
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 📊 Tenant Features
 
-## Learning Laravel
+-   **Status Management**: Active, Inactive, Suspended, Pending
+-   **User Limits**: Kontrol maksimal user per tenant
+-   **Storage Limits**: Kontrol storage per tenant
+-   **Settings Management**: Pengaturan tenant dalam format JSON
+-   **Metadata Support**: Data tambahan untuk tenant
+-   **Timezone & Locale**: Support multi-timezone dan multi-language
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 🔧 Technical Features
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+-   **Soft Deletes**: Data history dengan soft delete
+-   **UUID Support**: Identifikasi unik dengan UUID
+-   **JSON Fields**: Settings, features, dan metadata dalam JSON
+-   **Indexing**: Optimized database indexing
+-   **Factory & Seeder**: Testing data dengan factory dan seeder
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Database Structure
 
-## Laravel Sponsors
+### Tabel `tenants`
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```sql
+- id (Primary Key)
+- name (Nama tenant)
+- domain (Custom domain/subdomain)
+- database (Nama database untuk tenant)
+- uuid (UUID unik)
+- company_name (Nama perusahaan)
+- email (Email kontak)
+- phone (Nomor telepon)
+- address, city, state, country, postal_code (Alamat)
+- website (Website perusahaan)
+- logo, favicon (Branding assets)
+- settings (JSON - pengaturan tenant)
+- features (JSON - fitur yang diaktifkan)
+- status (enum: active, inactive, suspended, pending)
+- plan (enum: free, basic, premium, enterprise)
+- max_users, max_storage (Limits)
+- trial_ends_at, subscription_ends_at (Timestamps)
+- last_login_at (Last activity)
+- timezone, locale, currency (Regional settings)
+- description (Deskripsi tenant)
+- metadata (JSON - data tambahan)
+- timestamps, soft deletes
+```
 
-### Premium Partners
+### Relasi dengan Users
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+-   Tabel `users` memiliki foreign key `tenant_id`
+-   Setiap user terkait dengan satu tenant
+-   Cascade delete saat tenant dihapus
+
+## API Endpoints
+
+### Tenant Management
+
+```
+GET    /api/tenants              - List semua tenant
+POST   /api/tenants              - Buat tenant baru
+GET    /api/tenants/{id}         - Detail tenant
+PUT    /api/tenants/{id}         - Update tenant
+DELETE /api/tenants/{id}         - Hapus tenant
+```
+
+### Tenant Operations
+
+```
+GET    /api/tenants/statistics   - Statistik tenant
+PATCH  /api/tenants/{id}/activate   - Aktivasi tenant
+PATCH  /api/tenants/{id}/suspend    - Suspend tenant
+PUT    /api/tenants/{id}/settings   - Update settings
+POST   /api/tenants/{id}/features   - Tambah fitur
+DELETE /api/tenants/{id}/features   - Hapus fitur
+```
+
+### Query Parameters
+
+```
+?status=active          - Filter by status
+?plan=premium          - Filter by plan
+?search=company        - Search by name/company/email
+```
+
+## Model Methods
+
+### Tenant Model
+
+```php
+// Status checks
+$tenant->isActive()
+$tenant->isOnTrial()
+$tenant->hasExpired()
+$tenant->canAddUser()
+
+// Date calculations
+$tenant->getTrialDaysRemaining()
+$tenant->getSubscriptionDaysRemaining()
+
+// Settings management
+$tenant->getSetting('key', 'default')
+$tenant->setSetting('key', 'value')
+
+// Feature management
+$tenant->hasFeature('feature_name')
+$tenant->addFeature('feature_name')
+$tenant->removeFeature('feature_name')
+
+// Metadata management
+$tenant->getMetadata('key', 'default')
+$tenant->setMetadata('key', 'value')
+
+// Scopes
+Tenant::active()
+Tenant::byPlan('premium')
+Tenant::expired()
+Tenant::onTrial()
+```
+
+## Installation & Setup
+
+1. **Clone repository**
+
+```bash
+git clone <repository-url>
+cd project-ninehub
+```
+
+2. **Install dependencies**
+
+```bash
+composer install
+npm install
+```
+
+3. **Environment setup**
+
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+4. **Database setup**
+
+```bash
+php artisan migrate
+php artisan db:seed
+```
+
+5. **Run development server**
+
+```bash
+php artisan serve
+```
+
+## Testing
+
+### Factory Usage
+
+```php
+// Create tenant dengan factory
+Tenant::factory()->create();
+
+// Create dengan state tertentu
+Tenant::factory()->active()->premium()->create();
+Tenant::factory()->onTrial()->create();
+Tenant::factory()->expired()->create();
+```
+
+### Seeder
+
+```bash
+php artisan db:seed --class=TenantSeeder
+```
+
+## Contoh Penggunaan
+
+### Membuat Tenant Baru
+
+```php
+$tenant = Tenant::create([
+    'name' => 'Acme Corp',
+    'company_name' => 'Acme Corporation',
+    'email' => 'admin@acme.com',
+    'domain' => 'acme.ninehub.local',
+    'plan' => 'premium',
+    'max_users' => 25,
+    'max_storage' => 1000,
+    'timezone' => 'Asia/Jakarta',
+    'locale' => 'id',
+    'currency' => 'IDR',
+]);
+```
+
+### Mengelola Settings
+
+```php
+// Set setting
+$tenant->setSetting('theme', 'dark');
+$tenant->setSetting('notifications', true);
+
+// Get setting
+$theme = $tenant->getSetting('theme', 'light');
+```
+
+### Mengelola Features
+
+```php
+// Add feature
+$tenant->addFeature('advanced_analytics');
+$tenant->addFeature('custom_branding');
+
+// Check feature
+if ($tenant->hasFeature('advanced_analytics')) {
+    // Show analytics
+}
+```
+
+### Filtering & Searching
+
+```php
+// Active premium tenants
+$tenants = Tenant::active()->byPlan('premium')->get();
+
+// Search tenants
+$tenants = Tenant::where('name', 'like', '%Acme%')
+    ->orWhere('company_name', 'like', '%Acme%')
+    ->get();
+```
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+1. Fork repository
+2. Create feature branch
+3. Commit changes
+4. Push to branch
+5. Create Pull Request
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is licensed under the MIT License.
