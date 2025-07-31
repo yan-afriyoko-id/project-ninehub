@@ -6,6 +6,7 @@ use App\Http\Controllers\TenantController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\PlanController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -21,6 +22,20 @@ Route::prefix('tenants')->middleware('auth:sanctum')->group(function () {
     Route::delete('/{id}', [TenantController::class, 'destroy'])->middleware('module.permission:tenant-management.delete');
     Route::patch('/{id}/activate', [TenantController::class, 'activate'])->middleware('module.permission:tenant-management.edit');
     Route::patch('/{id}/suspend', [TenantController::class, 'suspend'])->middleware('module.permission:tenant-management.edit');
+});
+
+// Plan Management Routes
+Route::prefix('plans')->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [PlanController::class, 'index'])->middleware('module.permission:plan-management.view');
+    Route::post('/', [PlanController::class, 'store'])->middleware('module.permission:plan-management.create');
+    Route::get('/statistics', [PlanController::class, 'statistics'])->middleware('module.permission:plan-management.view');
+    Route::get('/active', [PlanController::class, 'active'])->middleware('module.permission:plan-management.view');
+    Route::get('/free', [PlanController::class, 'free'])->middleware('module.permission:plan-management.view');
+    Route::get('/paid', [PlanController::class, 'paid'])->middleware('module.permission:plan-management.view');
+    Route::get('/search', [PlanController::class, 'search'])->middleware('module.permission:plan-management.view');
+    Route::get('/{id}', [PlanController::class, 'show'])->middleware('module.permission:plan-management.view');
+    Route::put('/{id}', [PlanController::class, 'update'])->middleware('module.permission:plan-management.edit');
+    Route::delete('/{id}', [PlanController::class, 'destroy'])->middleware('module.permission:plan-management.delete');
 });
 
 // Module Management Routes
