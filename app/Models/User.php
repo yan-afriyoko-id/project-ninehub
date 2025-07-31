@@ -3,16 +3,17 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use App\Traits\HasModulePermissions;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles, HasModulePermissions;
+    use HasFactory, Notifiable, HasRoles, HasModulePermissions, HasApiTokens;
+
 
     /**
      * The attributes that are mass assignable.
@@ -47,6 +48,16 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+  
+    public function profile()
+    {
+        return $this->hasOne(Profile::class);
+    }
+
+    public function companies()
+    {
+        return $this->hasMany(Company::class);
     }
 
     /**
