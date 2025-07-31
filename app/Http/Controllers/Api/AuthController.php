@@ -23,19 +23,16 @@ class AuthController extends Controller
     public function register(RegisterRequest $request): AuthResponse
     {
         $user = $this->userService->createUser($request->validated());
+
+        $user->load('tenant.domains');
+
         $token = $user->createToken('auth-token')->plainTextToken;
 
-        $data = [
-            'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-            ],
-        ];
+        $user->token = $token;
 
-        return AuthResponse::success($data, 'Registration successful.', Response::HTTP_CREATED);
+        return AuthResponse::success($user, 'Registration successful.', Response::HTTP_CREATED);
     }
+
 
     public function login(LoginRequest $request): AuthResponse
     {
@@ -44,18 +41,12 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
-        $token = $user->createToken('auth-token')->plainTextToken;
 
-        $data = [
-            'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-            ],
-        ];
+        $user->load('tenant.domains');
 
-        return AuthResponse::success($data, 'Login successful.');
+        $user->token = $user->createToken('auth-token')->plainTextToken;
+
+        return AuthResponse::success($user, 'Login successful.');
     }
 
     public function profile(Request $request): AuthResponse
