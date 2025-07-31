@@ -203,4 +203,9 @@ class Tenant extends Model
 
         return Module::whereIn('slug', $planFeatures)->get();
     }
+
+    public function domains()
+    {
+        return $this->hasMany(Domain::class);
+    }
 }
