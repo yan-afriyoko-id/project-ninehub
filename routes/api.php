@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\RoleController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -36,11 +37,25 @@ Route::prefix('permissions')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [PermissionController::class, 'index'])->middleware('module.permission:permission-management.view');
     Route::post('/', [PermissionController::class, 'store'])->middleware('module.permission:permission-management.create');
     Route::get('/statistics', [PermissionController::class, 'statistics'])->middleware('module.permission:permission-management.view');
-    Route::get('/{id}', [PermissionController::class, 'show'])->middleware('module.permission:permission-management.view');
-    Route::put('/{id}', [PermissionController::class, 'update'])->middleware('module.permission:permission-management.edit');
-    Route::delete('/{id}', [PermissionController::class, 'destroy'])->middleware('module.permission:permission-management.delete');
     Route::get('/guard/{guard}', [PermissionController::class, 'byGuard'])->middleware('module.permission:permission-management.view');
     Route::get('/module/{moduleSlug}', [PermissionController::class, 'byModule'])->middleware('module.permission:permission-management.view');
     Route::get('/search', [PermissionController::class, 'search'])->middleware('module.permission:permission-management.view');
     Route::post('/sync', [PermissionController::class, 'sync'])->middleware('module.permission:permission-management.create');
+    Route::get('/{id}', [PermissionController::class, 'show'])->middleware('module.permission:permission-management.view');
+    Route::put('/{id}', [PermissionController::class, 'update'])->middleware('module.permission:permission-management.edit');
+    Route::delete('/{id}', [PermissionController::class, 'destroy'])->middleware('module.permission:permission-management.delete');
+});
+
+// Role Management Routes
+Route::prefix('roles')->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [RoleController::class, 'index'])->middleware('module.permission:role-management.view');
+    Route::post('/', [RoleController::class, 'store'])->middleware('module.permission:role-management.create');
+    Route::get('/statistics', [RoleController::class, 'statistics'])->middleware('module.permission:role-management.view');
+    Route::get('/guard/{guard}', [RoleController::class, 'byGuard'])->middleware('module.permission:role-management.view');
+    Route::get('/search', [RoleController::class, 'search'])->middleware('module.permission:role-management.view');
+    Route::get('/{id}', [RoleController::class, 'show'])->middleware('module.permission:role-management.view');
+    Route::put('/{id}', [RoleController::class, 'update'])->middleware('module.permission:role-management.edit');
+    Route::delete('/{id}', [RoleController::class, 'destroy'])->middleware('module.permission:role-management.delete');
+    Route::post('/{id}/assign-permissions', [RoleController::class, 'assignPermissions'])->middleware('module.permission:role-management.edit');
+    Route::post('/{id}/remove-permissions', [RoleController::class, 'removePermissions'])->middleware('module.permission:role-management.edit');
 });
