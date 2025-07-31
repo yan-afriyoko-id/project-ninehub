@@ -37,4 +37,26 @@ class ModuleFactory extends Factory
             ], $this->faker->numberBetween(1, 4)),
         ];
     }
+
+    /**
+     * Indicate that the module is public.
+     */
+    public function public(): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'is_public' => true,
+            'permissions' => ['view'],
+        ]);
+    }
+
+    /**
+     * Indicate that the module is private.
+     */
+    public function private(): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'is_public' => false,
+            'permissions' => ['view', 'create', 'edit', 'delete'],
+        ]);
+    }
 }
