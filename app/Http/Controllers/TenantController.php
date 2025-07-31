@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Tenant\StoreTenantRequest;
 use App\Http\Requests\Tenant\UpdateTenantRequest;
 use App\Http\Resources\TenantResource;
-use App\Services\TenantServiceInterface;
+use App\Services\Interfaces\TenantServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -23,19 +23,27 @@ class TenantController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $filters = $request->only(['is_active', 'plan_id', 'search', 'per_page']);
-        $tenants = $this->tenantService->getAllTenants($filters);
+        try {
+            $filters = $request->only(['is_active', 'plan_id', 'search', 'per_page']);
+            $tenants = $this->tenantService->getAllTenants($filters);
 
-        return response()->json([
-            'success' => true,
-            'data' => TenantResource::collection($tenants),
-            'pagination' => [
-                'current_page' => $tenants->currentPage(),
-                'last_page' => $tenants->lastPage(),
-                'per_page' => $tenants->perPage(),
-                'total' => $tenants->total(),
-            ],
-        ]);
+            return response()->json([
+                'success' => true,
+                'data' => TenantResource::collection($tenants),
+                'pagination' => [
+                    'current_page' => $tenants->currentPage(),
+                    'last_page' => $tenants->lastPage(),
+                    'per_page' => $tenants->perPage(),
+                    'total' => $tenants->total(),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve tenants',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -78,6 +86,7 @@ class TenantController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => new TenantResource($tenant),
+                'message' => 'Tenant retrieved successfully',
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -116,7 +125,14 @@ class TenantController extends Controller
     public function destroy(int $id): JsonResponse
     {
         try {
-            $this->tenantService->deleteTenant($id);
+            $result = $this->tenantService->deleteTenant($id);
+
+            if (!$result) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to delete tenant',
+                ], 500);
+            }
 
             return response()->json([
                 'success' => true,
@@ -137,28 +153,36 @@ class TenantController extends Controller
     public function statistics(): JsonResponse
     {
         try {
-            $stats = $this->tenantService->getTenantStatistics();
+            $statistics = $this->tenantService->getTenantStatistics();
 
             return response()->json([
                 'success' => true,
-                'data' => $stats,
+                'data' => $statistics,
+                'message' => 'Tenant statistics retrieved successfully',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to get statistics',
+                'message' => 'Failed to retrieve tenant statistics',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 
     /**
-     * Activate a tenant.
+     * Activate tenant.
      */
     public function activate(int $id): JsonResponse
     {
         try {
-            $this->tenantService->activateTenant($id);
+            $result = $this->tenantService->activateTenant($id);
+
+            if (!$result) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to activate tenant',
+                ], 500);
+            }
 
             return response()->json([
                 'success' => true,
@@ -174,12 +198,19 @@ class TenantController extends Controller
     }
 
     /**
-     * Suspend a tenant.
+     * Suspend tenant.
      */
     public function suspend(int $id): JsonResponse
     {
         try {
-            $this->tenantService->suspendTenant($id);
+            $result = $this->tenantService->suspendTenant($id);
+
+            if (!$result) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to suspend tenant',
+                ], 500);
+            }
 
             return response()->json([
                 'success' => true,

@@ -3,25 +3,11 @@
 namespace App\Services;
 
 use App\Models\Module;
-use App\Repositories\ModuleRepositoryInterface;
+use App\Repositories\Interfaces\ModuleRepositoryInterface;
+use App\Services\Interfaces\ModuleServiceInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Exception;
-
-interface ModuleServiceInterface
-{
-    public function getAllModules(): Collection;
-    public function getModuleById(int $id): ?Module;
-    public function createModule(array $data): Module;
-    public function updateModule(int $id, array $data): Module;
-    public function deleteModule(int $id): bool;
-    public function getActiveModules(): Collection;
-    public function getPublicModules(): Collection;
-    public function getModulesByOrder(): Collection;
-    public function searchModules(string $search): Collection;
-    public function getModulesBySlug(array $slugs): Collection;
-    public function syncModulePermissions(int $moduleId): bool;
-}
 
 class ModuleService implements ModuleServiceInterface
 {
@@ -33,7 +19,7 @@ class ModuleService implements ModuleServiceInterface
     }
 
     /**
-     * Get all modules
+     * Get all modules.
      */
     public function getAllModules(): Collection
     {
@@ -41,7 +27,7 @@ class ModuleService implements ModuleServiceInterface
     }
 
     /**
-     * Get module by ID
+     * Get module by ID.
      */
     public function getModuleById(int $id): ?Module
     {
@@ -49,47 +35,71 @@ class ModuleService implements ModuleServiceInterface
     }
 
     /**
-     * Create new module
+     * Create a new module.
      */
     public function createModule(array $data): Module
     {
-        return DB::transaction(function () use ($data) {
+        try {
+            DB::beginTransaction();
+
             $module = $this->repository->create($data);
 
-            // Sync permissions for this module
-            $this->syncModulePermissions($module->id);
+            // Sync permissions if module has permissions
+            if (!empty($data['permissions'])) {
+                $this->syncModulePermissions($module->id);
+            }
 
-            return $module->load(['tenants']);
-        });
+            DB::commit();
+            return $module;
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     /**
-     * Update existing module
+     * Update an existing module.
      */
     public function updateModule(int $id, array $data): Module
     {
-        return DB::transaction(function () use ($id, $data) {
+        try {
+            DB::beginTransaction();
+
             $module = $this->repository->update($id, $data);
 
-            // Sync permissions for this module
-            $this->syncModulePermissions($module->id);
+            // Sync permissions if permissions were updated
+            if (isset($data['permissions'])) {
+                $this->syncModulePermissions($module->id);
+            }
 
+            DB::commit();
             return $module;
-        });
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     /**
-     * Delete module
+     * Delete a module.
      */
     public function deleteModule(int $id): bool
     {
-        return DB::transaction(function () use ($id) {
-            return $this->repository->delete($id);
-        });
+        try {
+            DB::beginTransaction();
+
+            $result = $this->repository->delete($id);
+
+            DB::commit();
+            return $result;
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     /**
-     * Get active modules
+     * Get active modules.
      */
     public function getActiveModules(): Collection
     {
@@ -97,7 +107,7 @@ class ModuleService implements ModuleServiceInterface
     }
 
     /**
-     * Get public modules
+     * Get public modules.
      */
     public function getPublicModules(): Collection
     {
@@ -105,7 +115,7 @@ class ModuleService implements ModuleServiceInterface
     }
 
     /**
-     * Get modules ordered by order field
+     * Get modules ordered by order field.
      */
     public function getModulesByOrder(): Collection
     {
@@ -113,7 +123,7 @@ class ModuleService implements ModuleServiceInterface
     }
 
     /**
-     * Search modules
+     * Search modules by name, slug, or description.
      */
     public function searchModules(string $search): Collection
     {
@@ -121,7 +131,7 @@ class ModuleService implements ModuleServiceInterface
     }
 
     /**
-     * Get modules by slugs
+     * Get modules by slugs.
      */
     public function getModulesBySlug(array $slugs): Collection
     {
@@ -129,19 +139,27 @@ class ModuleService implements ModuleServiceInterface
     }
 
     /**
-     * Sync permissions for a module
+     * Sync module permissions with Spatie Permission.
      */
     public function syncModulePermissions(int $moduleId): bool
     {
         try {
-            $module = $this->repository->findOrFail($moduleId);
+            $module = $this->repository->find($moduleId);
+
+            if (!$module) {
+                return false;
+            }
+
             $permissions = $module->getPermissionsToCreate();
 
             foreach ($permissions as $permissionName) {
-                \Spatie\Permission\Models\Permission::firstOrCreate([
-                    'name' => $permissionName,
-                    'guard_name' => 'web'
-                ]);
+                // Create permission if it doesn't exist
+                if (!\Spatie\Permission\Models\Permission::where('name', $permissionName)->exists()) {
+                    \Spatie\Permission\Models\Permission::create([
+                        'name' => $permissionName,
+                        'guard_name' => 'web'
+                    ]);
+                }
             }
 
             return true;

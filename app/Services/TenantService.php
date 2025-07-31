@@ -4,23 +4,12 @@ namespace App\Services;
 
 use App\Models\Tenant;
 use App\Models\Plan;
-use App\Repositories\TenantRepositoryInterface;
+use App\Repositories\Interfaces\TenantRepositoryInterface;
+use App\Services\Interfaces\TenantServiceInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Exception;
-
-interface TenantServiceInterface
-{
-    public function getAllTenants(array $filters = []): LengthAwarePaginator;
-    public function getTenantById(int $id): ?Tenant;
-    public function createTenant(array $data): Tenant;
-    public function updateTenant(int $id, array $data): Tenant;
-    public function deleteTenant(int $id): bool;
-    public function activateTenant(int $id): bool;
-    public function suspendTenant(int $id): bool;
-    public function getTenantStatistics(): array;
-}
 
 class TenantService implements TenantServiceInterface
 {
@@ -52,14 +41,19 @@ class TenantService implements TenantServiceInterface
      */
     public function createTenant(array $data): Tenant
     {
-        return DB::transaction(function () use ($data) {
+        try {
+            DB::beginTransaction();
             $tenant = $this->repository->create($data);
 
             // Assign modules based on plan
             $this->assignModulesToTenant($tenant);
 
+            DB::commit();
             return $tenant->load(['owner', 'plan']);
-        });
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     /**
@@ -67,9 +61,15 @@ class TenantService implements TenantServiceInterface
      */
     public function updateTenant(int $id, array $data): Tenant
     {
-        return DB::transaction(function () use ($id, $data) {
-            return $this->repository->update($id, $data);
-        });
+        try {
+            DB::beginTransaction();
+            $tenant = $this->repository->update($id, $data);
+            DB::commit();
+            return $tenant;
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     /**
@@ -77,9 +77,15 @@ class TenantService implements TenantServiceInterface
      */
     public function deleteTenant(int $id): bool
     {
-        return DB::transaction(function () use ($id) {
-            return $this->repository->delete($id);
-        });
+        try {
+            DB::beginTransaction();
+            $result = $this->repository->delete($id);
+            DB::commit();
+            return $result;
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     /**
@@ -87,9 +93,13 @@ class TenantService implements TenantServiceInterface
      */
     public function activateTenant(int $id): bool
     {
-        $tenant = $this->repository->findOrFail($id);
-        $tenant->activate();
-        return true;
+        try {
+            $tenant = $this->repository->findOrFail($id);
+            $tenant->activate();
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     /**
@@ -97,9 +107,13 @@ class TenantService implements TenantServiceInterface
      */
     public function suspendTenant(int $id): bool
     {
-        $tenant = $this->repository->findOrFail($id);
-        $tenant->deactivate();
-        return true;
+        try {
+            $tenant = $this->repository->findOrFail($id);
+            $tenant->deactivate();
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     /**
@@ -115,13 +129,14 @@ class TenantService implements TenantServiceInterface
      */
     private function assignModulesToTenant(Tenant $tenant): void
     {
-        $planFeatures = $tenant->plan->features ?? [];
+        $plan = $tenant->plan;
+        if (!$plan || empty($plan->features)) {
+            return;
+        }
 
-        foreach ($planFeatures as $moduleSlug) {
-            $module = \App\Models\Module::where('slug', $moduleSlug)->first();
-            if ($module) {
-                $tenant->assignModule($module->id);
-            }
+        $modules = \App\Models\Module::whereIn('slug', $plan->features)->get();
+        foreach ($modules as $module) {
+            $tenant->assignModule($module->id);
         }
     }
 }

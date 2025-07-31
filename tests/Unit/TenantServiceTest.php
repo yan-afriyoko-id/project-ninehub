@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Plan;
 use App\Models\Module;
 use App\Services\TenantService;
+use App\Services\Interfaces\TenantServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -20,7 +21,7 @@ class TenantServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->tenantService = new TenantService();
+        $this->tenantService = app(TenantService::class);
     }
 
     /**

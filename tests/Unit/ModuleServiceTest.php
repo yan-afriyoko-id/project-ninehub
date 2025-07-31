@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Models\Module;
 use App\Services\ModuleService;
+use App\Services\Interfaces\ModuleServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;

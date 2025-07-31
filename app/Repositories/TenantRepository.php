@@ -3,24 +3,9 @@
 namespace App\Repositories;
 
 use App\Models\Tenant;
+use App\Repositories\Interfaces\TenantRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-
-interface TenantRepositoryInterface
-{
-    public function all(): Collection;
-    public function find(int $id): ?Tenant;
-    public function findOrFail(int $id): Tenant;
-    public function create(array $data): Tenant;
-    public function update(int $id, array $data): Tenant;
-    public function delete(int $id): bool;
-    public function paginate(array $filters = []): LengthAwarePaginator;
-    public function getActiveTenants(): Collection;
-    public function getInactiveTenants(): Collection;
-    public function getTenantsByPlan(int $planId): Collection;
-    public function searchTenants(string $search): Collection;
-    public function getTenantStatistics(): array;
-}
 
 class TenantRepository implements TenantRepositoryInterface
 {
@@ -140,10 +125,10 @@ class TenantRepository implements TenantRepositoryInterface
      */
     public function searchTenants(string $search): Collection
     {
-        return $this->model->where(function ($query) use ($search) {
-            $query->where('name', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%");
-        })->with(['owner', 'plan'])->get();
+        return $this->model->with(['owner', 'plan'])
+            ->where('name', 'like', "%{$search}%")
+            ->orWhere('email', 'like', "%{$search}%")
+            ->get();
     }
 
     /**
@@ -151,16 +136,22 @@ class TenantRepository implements TenantRepositoryInterface
      */
     public function getTenantStatistics(): array
     {
+        $totalTenants = $this->model->count();
+        $activeTenants = $this->model->active()->count();
+        $inactiveTenants = $totalTenants - $activeTenants;
+
+        $byPlan = $this->model->with('plan')
+            ->get()
+            ->groupBy('plan_id')
+            ->map(function ($tenants) {
+                return $tenants->count();
+            });
+
         return [
-            'total_tenants' => $this->model->count(),
-            'active_tenants' => $this->model->active()->count(),
-            'inactive_tenants' => $this->model->where('is_active', false)->count(),
-            'by_plan' => $this->model->with('plan')
-                ->get()
-                ->groupBy('plan.slug')
-                ->map(function ($tenants) {
-                    return $tenants->count();
-                }),
+            'total_tenants' => $totalTenants,
+            'active_tenants' => $activeTenants,
+            'inactive_tenants' => $inactiveTenants,
+            'by_plan' => $byPlan,
         ];
     }
 }

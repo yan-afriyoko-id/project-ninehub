@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Module\StoreModuleRequest;
 use App\Http\Requests\Module\UpdateModuleRequest;
 use App\Http\Resources\ModuleResource;
-use App\Services\ModuleServiceInterface;
+use App\Services\Interfaces\ModuleServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\Module; // Added this import for the new logic

@@ -3,23 +3,8 @@
 namespace App\Repositories;
 
 use App\Models\Module;
+use App\Repositories\Interfaces\ModuleRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
-
-interface ModuleRepositoryInterface
-{
-    public function all(): Collection;
-    public function find(int $id): ?Module;
-    public function findOrFail(int $id): Module;
-    public function create(array $data): Module;
-    public function update(int $id, array $data): Module;
-    public function delete(int $id): bool;
-    public function getActiveModules(): Collection;
-    public function getPublicModules(): Collection;
-    public function getModulesByOrder(): Collection;
-    public function searchModules(string $search): Collection;
-    public function getModulesBySlug(array $slugs): Collection;
-}
 
 class ModuleRepository implements ModuleRepositoryInterface
 {
@@ -31,7 +16,7 @@ class ModuleRepository implements ModuleRepositoryInterface
     }
 
     /**
-     * Get all modules
+     * Get all modules.
      */
     public function all(): Collection
     {
@@ -39,7 +24,7 @@ class ModuleRepository implements ModuleRepositoryInterface
     }
 
     /**
-     * Find module by ID
+     * Find module by ID.
      */
     public function find(int $id): ?Module
     {
@@ -47,7 +32,7 @@ class ModuleRepository implements ModuleRepositoryInterface
     }
 
     /**
-     * Find module by ID or throw exception
+     * Find module by ID or throw exception.
      */
     public function findOrFail(int $id): Module
     {
@@ -55,7 +40,7 @@ class ModuleRepository implements ModuleRepositoryInterface
     }
 
     /**
-     * Create new module
+     * Create a new module.
      */
     public function create(array $data): Module
     {
@@ -63,17 +48,17 @@ class ModuleRepository implements ModuleRepositoryInterface
     }
 
     /**
-     * Update existing module
+     * Update an existing module.
      */
     public function update(int $id, array $data): Module
     {
         $module = $this->findOrFail($id);
         $module->update($data);
-        return $module->fresh(['tenants']);
+        return $module->fresh();
     }
 
     /**
-     * Delete module
+     * Delete a module.
      */
     public function delete(int $id): bool
     {
@@ -82,7 +67,7 @@ class ModuleRepository implements ModuleRepositoryInterface
     }
 
     /**
-     * Get active modules
+     * Get active modules.
      */
     public function getActiveModules(): Collection
     {
@@ -90,7 +75,7 @@ class ModuleRepository implements ModuleRepositoryInterface
     }
 
     /**
-     * Get public modules
+     * Get public modules.
      */
     public function getPublicModules(): Collection
     {
@@ -98,7 +83,7 @@ class ModuleRepository implements ModuleRepositoryInterface
     }
 
     /**
-     * Get modules ordered by order field
+     * Get modules ordered by order field.
      */
     public function getModulesByOrder(): Collection
     {
@@ -106,7 +91,7 @@ class ModuleRepository implements ModuleRepositoryInterface
     }
 
     /**
-     * Search modules
+     * Search modules by name, slug, or description.
      */
     public function searchModules(string $search): Collection
     {
@@ -118,7 +103,7 @@ class ModuleRepository implements ModuleRepositoryInterface
     }
 
     /**
-     * Get modules by slugs
+     * Get modules by slugs.
      */
     public function getModulesBySlug(array $slugs): Collection
     {
