@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             TenantSeeder::class,
+            ModuleSeeder::class,
         ]);
 
         // Create a test user
