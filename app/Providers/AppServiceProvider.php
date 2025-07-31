@@ -2,6 +2,16 @@
 
 namespace App\Providers;
 
+use App\Interfaces\CompanyRepositoryInterface;
+use App\Interfaces\ContactRepositoryInterface;
+use App\Interfaces\LeadRepositoryInterface;
+use App\Interfaces\profileRepositoryInterface;
+use App\Interfaces\UserRepositoryInterface;
+use App\Repositories\CompanyRepository;
+use App\Repositories\ContactRepository;
+use App\Repositories\LeadRepository;
+use App\Repositories\profileRepository;
+use App\Repositories\UserRepository;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +21,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
+        $this->app->bind(profileRepositoryInterface::class, profileRepository::class);
+        $this->app->bind(ContactRepositoryInterface::class, ContactRepository::class);
+        $this->app->bind(CompanyRepositoryInterface::class, CompanyRepository::class);
+        $this->app->bind(LeadRepositoryInterface::class, LeadRepository::class);
     }
 
     /**

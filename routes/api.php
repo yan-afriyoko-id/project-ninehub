@@ -1,7 +1,12 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\LeadController;
+use App\Http\Controllers\Api\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\OpenAIController;
 use App\Http\Controllers\ChatController;
 
 /*
@@ -23,6 +28,18 @@ Route::get('/chat/conversation/{id}', [ChatController::class, 'getConversation']
 Route::delete('/chat/conversation/{id}', [ChatController::class, 'deleteConversation'])->name('api.chat.delete');
 Route::get('/chat/test', [ChatController::class, 'test'])->name('api.chat.test');
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-}); 
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('profile', ProfileController::class);
+    Route::apiResource('contact', ContactController::class);
+    Route::apiResource('company', CompanyController::class);
+    Route::apiResource('lead', LeadController::class);
+
+
+
+
+    Route::get('/user/profile', [ProfileController::class, 'getProfile']);
+
+});
