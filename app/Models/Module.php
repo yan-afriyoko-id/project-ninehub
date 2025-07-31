@@ -39,6 +39,37 @@ class Module extends Model
     ];
 
     /**
+     * Get the permissions for this module.
+     */
+    public function getModulePermissions()
+    {
+        return $this->permissions ?? [];
+    }
+
+    /**
+     * Check if module has specific permission.
+     */
+    public function hasPermission($permission): bool
+    {
+        return in_array($permission, $this->getModulePermissions());
+    }
+
+    /**
+     * Get all permissions that should be created for this module.
+     */
+    public function getPermissionsToCreate(): array
+    {
+        $permissions = [];
+        $moduleSlug = $this->slug;
+
+        foreach ($this->getModulePermissions() as $permission) {
+            $permissions[] = $moduleSlug . '.' . $permission;
+        }
+
+        return $permissions;
+    }
+
+    /**
      * Scope a query to only include active modules.
      */
     public function scopeActive($query)

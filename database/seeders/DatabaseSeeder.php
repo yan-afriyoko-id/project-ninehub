@@ -16,12 +16,16 @@ class DatabaseSeeder extends Seeder
         $this->call([
             TenantSeeder::class,
             ModuleSeeder::class,
+            RolePermissionSeeder::class,
         ]);
 
-        // Create a test user
-        User::factory()->create([
+        // Create a test user with super-admin role
+        $user = User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // Assign super-admin role to test user
+        $user->assignRole('super-admin');
     }
 }
