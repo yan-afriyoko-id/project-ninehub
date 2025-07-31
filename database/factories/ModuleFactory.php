@@ -59,4 +59,24 @@ class ModuleFactory extends Factory
             'permissions' => ['view', 'create', 'edit', 'delete'],
         ]);
     }
+
+    /**
+     * Indicate that the module is active.
+     */
+    public function active(): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'is_active' => true,
+        ]);
+    }
+
+    /**
+     * Indicate that the module is inactive.
+     */
+    public function inactive(): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'is_active' => false,
+        ]);
+    }
 }
