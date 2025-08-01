@@ -6,11 +6,13 @@ use App\Interfaces\CompanyRepositoryInterface;
 use App\Interfaces\ContactRepositoryInterface;
 use App\Interfaces\LeadRepositoryInterface;
 use App\Interfaces\profileRepositoryInterface;
+use App\Interfaces\TenantRepositoryInterface;
 use App\Interfaces\UserRepositoryInterface;
 use App\Repositories\CompanyRepository;
 use App\Repositories\ContactRepository;
 use App\Repositories\LeadRepository;
 use App\Repositories\profileRepository;
+use App\Repositories\TenantRepository;
 use App\Repositories\UserRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -26,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ContactRepositoryInterface::class, ContactRepository::class);
         $this->app->bind(CompanyRepositoryInterface::class, CompanyRepository::class);
         $this->app->bind(LeadRepositoryInterface::class, LeadRepository::class);
+        $this->app->bind(TenantRepositoryInterface::class, TenantRepository::class);
     }
 
     /**
