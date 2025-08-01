@@ -60,6 +60,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Company::class);
     }
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
+    }
 
     /**
      * Get the tenant that owns the user.
