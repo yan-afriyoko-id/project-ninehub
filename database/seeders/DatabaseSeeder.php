@@ -14,10 +14,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            TenantSeeder::class,
-            ModuleSeeder::class,
             RolePermissionSeeder::class,
-            TenantModuleSeeder::class,
+    
         ]);
 
         // Create a test user with super-admin role

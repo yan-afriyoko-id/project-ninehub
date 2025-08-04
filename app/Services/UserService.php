@@ -5,6 +5,10 @@ namespace App\Services;
 use App\Interfaces\UserRepositoryInterface;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Tenant;
+use Stancl\Tenancy\Database\Models\Domain;
+use Illuminate\Support\Str;
+
 class UserService
 {
     protected $repo;
@@ -24,12 +28,25 @@ class UserService
 
     public function createUser(array $data): User
     {
+        $tenant = Tenant::create([
+            'id' => (string) Str::uuid(),
+            'data' => [
+                'company' => $data['company'],
+            ]
+        ]);
+
+        $tenant->domains()->create([
+            'domain' => $data['domain'],
+        ]);
+
         $preparedData = [
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'tenant_id' => $tenant->id,
         ];
 
         return $this->repo->create($preparedData);
     }
+
 }

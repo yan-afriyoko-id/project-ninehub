@@ -2,156 +2,32 @@
 
 namespace App\Repositories;
 
+use App\Interfaces\TenantRepositoryInterface;
 use App\Models\Tenant;
-use App\Repositories\Interfaces\TenantRepositoryInterface;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Log;
 
 class TenantRepository implements TenantRepositoryInterface
 {
-    protected Tenant $model;
+    protected Tenant $tenant;
 
-    public function __construct(Tenant $model)
+    public function __construct()
     {
-        $this->model = $model;
+        $this->tenant = tenant();
     }
 
-    /**
-     * Get all tenants
-     */
-    public function all(): Collection
+    public function getData(): array
     {
-        return $this->model->with(['owner', 'plan'])->get();
+        return $this->tenant->data ?? [];
     }
 
-    /**
-     * Find tenant by ID
-     */
-    public function find(int $id): ?Tenant
+    public function updateData(array $data): void
     {
-        return $this->model->with(['owner', 'plan', 'users'])->find($id);
-    }
+        $current = $this->tenant->data ?? [];
+        $this->tenant->data = array_merge($current, $data);
+        Log::info('Dirty', $this->tenant->getDirty()); // tambahkan ini
+        $this->tenant->save();
+        Log::info('DB data', ['data' => \DB::table('tenants')->where('id', $this->tenant->id)->value('data')]);
 
-    /**
-     * Find tenant by ID or throw exception
-     */
-    public function findOrFail(int $id): Tenant
-    {
-        return $this->model->with(['owner', 'plan', 'users'])->findOrFail($id);
-    }
 
-    /**
-     * Create new tenant
-     */
-    public function create(array $data): Tenant
-    {
-        return $this->model->create($data);
-    }
-
-    /**
-     * Update existing tenant
-     */
-    public function update(int $id, array $data): Tenant
-    {
-        $tenant = $this->findOrFail($id);
-        $tenant->update($data);
-        return $tenant->fresh(['owner', 'plan']);
-    }
-
-    /**
-     * Delete tenant
-     */
-    public function delete(int $id): bool
-    {
-        $tenant = $this->findOrFail($id);
-        return $tenant->delete();
-    }
-
-    /**
-     * Get paginated tenants with filters
-     */
-    public function paginate(array $filters = []): LengthAwarePaginator
-    {
-        $query = $this->model->with(['owner', 'plan']);
-
-        // Filter by status
-        if (isset($filters['is_active'])) {
-            $query->where('is_active', $filters['is_active']);
-        }
-
-        // Filter by plan
-        if (isset($filters['plan_id'])) {
-            $query->where('plan_id', $filters['plan_id']);
-        }
-
-        // Search by name or email
-        if (isset($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
-            });
-        }
-
-        return $query->paginate($filters['per_page'] ?? 15);
-    }
-
-    /**
-     * Get active tenants
-     */
-    public function getActiveTenants(): Collection
-    {
-        return $this->model->active()->with(['owner', 'plan'])->get();
-    }
-
-    /**
-     * Get inactive tenants
-     */
-    public function getInactiveTenants(): Collection
-    {
-        return $this->model->where('is_active', false)->with(['owner', 'plan'])->get();
-    }
-
-    /**
-     * Get tenants by plan
-     */
-    public function getTenantsByPlan(int $planId): Collection
-    {
-        return $this->model->byPlan($planId)->with(['owner', 'plan'])->get();
-    }
-
-    /**
-     * Search tenants
-     */
-    public function searchTenants(string $search): Collection
-    {
-        return $this->model->with(['owner', 'plan'])
-            ->where('name', 'like', "%{$search}%")
-            ->orWhere('email', 'like', "%{$search}%")
-            ->get();
-    }
-
-    /**
-     * Get tenant statistics
-     */
-    public function getTenantStatistics(): array
-    {
-        $totalTenants = $this->model->count();
-        $activeTenants = $this->model->active()->count();
-        $inactiveTenants = $totalTenants - $activeTenants;
-
-        $byPlan = $this->model->with('plan')
-            ->get()
-            ->groupBy('plan_id')
-            ->map(function ($tenants) {
-                return $tenants->count();
-            });
-
-        return [
-            'total_tenants' => $totalTenants,
-            'active_tenants' => $activeTenants,
-            'inactive_tenants' => $inactiveTenants,
-            'by_plan' => $byPlan,
-        ];
     }
 }
