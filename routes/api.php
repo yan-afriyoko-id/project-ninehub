@@ -37,14 +37,22 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('profile', ProfileController::class);
+    // Profile Management Routes
+    Route::prefix('profiles')->group(function () {
+        Route::get('/', [ProfileController::class, 'index']);
+        Route::post('/', [ProfileController::class, 'store']);
+        Route::get('/statistics', [ProfileController::class, 'statistics']);
+        Route::get('/me', [ProfileController::class, 'getProfile']);
+        Route::get('/{id}', [ProfileController::class, 'show']);
+        Route::put('/{id}', [ProfileController::class, 'update']);
+        Route::delete('/{id}', [ProfileController::class, 'destroy']);
+    });
+
     Route::apiResource('contact', ContactController::class);
     Route::apiResource('company', CompanyController::class);
     Route::apiResource('lead', LeadController::class);
     Route::get('/settings', [TenantSettingController::class, 'show']);
     Route::put('/settings', [TenantSettingController::class, 'update']);
-
-    Route::get('/user/profile', [ProfileController::class, 'getProfile']);
 });
 
 // Tenant Management Routes

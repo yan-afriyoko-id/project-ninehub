@@ -18,42 +18,45 @@ class ProfileService
     }
 
 
-    public function getAllProfiles()
+    public function getAllProfiles(array $filters = [])
     {
-        return $this->repo->all(['user']);
+        return $this->repo->paginate($filters);
     }
 
+    public function getProfileById(int $id): ?Profile
+    {
+        return $this->repo->find($id);
+    }
 
     public function create(array $data, int $userId): Profile
     {
         $existingProfile = $this->repo->findByUserId($userId);
 
         if ($existingProfile) {
-            $updatedProfile = $this->repo->update($existingProfile, $data);
-            return $updatedProfile;
+            return $this->repo->update($existingProfile->id, $data);
         }
 
         $preparedData = array_merge($data, ['user_id' => $userId]);
-        $newProfile = $this->repo->create($preparedData);
-        return $newProfile;
+        return $this->repo->create($preparedData);
     }
 
-
-
-    public function getProfileById($id): ?Profile
+    public function update(int $id, array $data): Profile
     {
-        $profile = $this->repo->getById($id, ['user']);
-        return $profile;
+        return $this->repo->update($id, $data);
     }
 
-    public function update(Profile $profile, array $data): Profile
+    public function delete(int $id): bool
     {
-        return $this->repo->update($profile, $data);
+        return $this->repo->delete($id);
     }
 
-    public function delete($id): bool
+    public function getProfileByUserId(int $userId): ?Profile
     {
-        $deleted = $this->repo->delete($id);
-        return true;
+        return $this->repo->findByUserId($userId);
+    }
+
+    public function getProfileStatistics(): array
+    {
+        return $this->repo->getProfileStatistics();
     }
 }

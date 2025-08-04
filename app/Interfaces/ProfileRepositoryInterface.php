@@ -3,13 +3,53 @@
 namespace App\Interfaces;
 
 use App\Models\Profile;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 interface ProfileRepositoryInterface
 {
-    public function all(array $relations = []): iterable;
+    /**
+     * Get all profiles.
+     */
+    public function all(): Collection;
+
+    /**
+     * Find profile by ID.
+     */
+    public function find(int $id): ?Profile;
+
+    /**
+     * Find profile by ID or throw exception.
+     */
+    public function findOrFail(int $id): Profile;
+
+    /**
+     * Create a new profile.
+     */
     public function create(array $data): Profile;
-    public function getById($id, array $relations = []): ?Profile;
-    public function update(Profile $profile, array $data): Profile;
-    public function delete($id): bool;
+
+    /**
+     * Update an existing profile.
+     */
+    public function update(int $id, array $data): Profile;
+
+    /**
+     * Delete a profile.
+     */
+    public function delete(int $id): bool;
+
+    /**
+     * Get paginated profiles with filters.
+     */
+    public function paginate(array $filters = []): LengthAwarePaginator;
+
+    /**
+     * Find profile by user ID.
+     */
     public function findByUserId(int $userId): ?Profile;
+
+    /**
+     * Get profile statistics.
+     */
+    public function getProfileStatistics(): array;
 }

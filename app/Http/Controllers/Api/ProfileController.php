@@ -9,6 +9,7 @@ use App\Services\ProfileService;
 use App\Models\Profile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class ProfileController extends Controller
 {
@@ -19,54 +20,166 @@ class ProfileController extends Controller
         $this->service = $service;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $Profiles = $this->service->getAllProfiles();
-        return ProfileResource::collection($Profiles);
+        try {
+            $filters = $request->only(['search', 'gender', 'age_min', 'age_max', 'per_page']);
+            $profiles = $this->service->getAllProfiles($filters);
+
+            return response()->json([
+                'success' => true,
+                'data' => ProfileResource::collection($profiles),
+                'pagination' => [
+                    'current_page' => $profiles->currentPage(),
+                    'last_page' => $profiles->lastPage(),
+                    'per_page' => $profiles->perPage(),
+                    'total' => $profiles->total(),
+                ],
+                'message' => 'Profiles retrieved successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve profiles',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function getProfile(Request $request)
     {
-        $user = $request->user();
-        $profile = $user->load('profile')->profile;
+        try {
+            $user = $request->user();
+            $profile = $this->service->getProfileByUserId($user->id);
 
-        if (!$profile) {
-            // Auto-create profile if not exists
-            Profile::create([
-                'name' => $user->name,
-                'user_id' => $user->id,
+            if (!$profile) {
+                // Auto-create profile if not exists
+                $profile = $this->service->create([
+                    'name' => $user->name,
+                ], $user->id);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => new ProfileResource($profile),
+                'message' => 'Profile retrieved successfully',
             ]);
-
-            $user->load('profile');
-            $profile = $user->profile;
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve profile',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        return new ProfileResource($profile);
     }
 
     public function store(StoreProfileRequest $request)
     {
-        $userId = Auth::id();
-        $Profile = $this->service->create($request->validated(), $userId);
-        return new ProfileResource($Profile);
+        try {
+            $userId = Auth::id();
+            $profile = $this->service->create($request->validated(), $userId);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile created successfully',
+                'data' => new ProfileResource($profile),
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create profile',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function show($id)
     {
-        $Profile = $this->service->getProfileById($id);
-        return new ProfileResource($Profile);
+        try {
+            $profile = $this->service->getProfileById($id);
+
+            return response()->json([
+                'success' => true,
+                'data' => new ProfileResource($profile),
+                'message' => 'Profile retrieved successfully',
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Profile not found',
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve profile',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function update(StoreProfileRequest $request, $id)
     {
-        $Profile = $this->service->getProfileById($id);
-        $updated = $this->service->update($Profile, $request->validated());
-        return new ProfileResource($updated);
+        try {
+            $updated = $this->service->update($id, $request->validated());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile updated successfully',
+                'data' => new ProfileResource($updated),
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Profile not found',
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update profile',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function destroy($id)
     {
-        $this->service->delete($id);
-        return response()->noContent();
+        try {
+            $this->service->delete($id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile deleted successfully',
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Profile not found',
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete profile',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function statistics(): JsonResponse
+    {
+        try {
+            $statistics = $this->service->getProfileStatistics();
+
+            return response()->json([
+                'success' => true,
+                'data' => $statistics,
+                'message' => 'Profile statistics retrieved successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve profile statistics',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
