@@ -24,7 +24,7 @@ class AuthController extends Controller
     {
         $user = $this->userService->createUser($request->validated());
 
-        $user->load('tenant.domains');
+        $user->load(['tenant.domains', 'profile']);
 
         $token = $user->createToken('auth-token')->plainTextToken;
 

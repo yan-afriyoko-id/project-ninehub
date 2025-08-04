@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Interfaces\UserRepositoryInterface;
 use App\Models\User;
+use App\Models\Profile;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Tenant;
 use Stancl\Tenancy\Database\Models\Domain;
@@ -46,7 +47,14 @@ class UserService
             'tenant_id' => $tenant->id,
         ];
 
-        return $this->repo->create($preparedData);
-    }
+        $user = $this->repo->create($preparedData);
 
+        // Auto-create profile for the new user
+        Profile::create([
+            'name' => $data['name'],
+            'user_id' => $user->id,
+        ]);
+
+        return $user;
+    }
 }

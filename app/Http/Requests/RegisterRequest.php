@@ -27,7 +27,12 @@ class RegisterRequest extends FormRequest
             'password' => 'required|string|min:8|confirmed',
             'company' => 'required|string|max:255',
             'domain' => 'required|string|max:255|unique:domains,domain',
+            // Optional profile fields
+            'phone_number' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'birth_date' => 'nullable|date',
+            'age' => 'nullable|integer|min:1|max:120',
+            'gender' => 'nullable|in:male,female',
         ];
     }
-
 }

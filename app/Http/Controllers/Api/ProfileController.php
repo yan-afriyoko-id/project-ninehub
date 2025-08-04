@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProfileRequest;
 use App\Http\Resources\ProfileResource;
 use App\Services\ProfileService;
+use App\Models\Profile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
@@ -27,7 +28,20 @@ class ProfileController extends Controller
     public function getProfile(Request $request)
     {
         $user = $request->user();
-        return new ProfileResource($user->load('profile')->profile);
+        $profile = $user->load('profile')->profile;
+
+        if (!$profile) {
+            // Auto-create profile if not exists
+            Profile::create([
+                'name' => $user->name,
+                'user_id' => $user->id,
+            ]);
+
+            $user->load('profile');
+            $profile = $user->profile;
+        }
+
+        return new ProfileResource($profile);
     }
 
     public function store(StoreProfileRequest $request)
