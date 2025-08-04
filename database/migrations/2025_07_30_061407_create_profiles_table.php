@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('profiles', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('age');
+            $table->integer('age')->nullable();
             $table->enum('gender', ['male', 'female'])->nullable();
             $table->string('phone_number')->nullable();
             $table->text('address')->nullable();
