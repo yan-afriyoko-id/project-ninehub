@@ -2,31 +2,29 @@
 
 namespace App\Services;
 
-use App\Exceptions\profile\profileNotFoundException;
-use App\Interfaces\profileRepositoryInterface;
-use App\Models\profile;
+use App\Interfaces\ProfileRepositoryInterface;
+use App\Models\Profile;
 use App\Services\UserService;
-use App\Events\profileCreated;
 
-class profileService
+class ProfileService
 {
     protected $repo;
     protected $UserService;
 
-    public function __construct(profileRepositoryInterface $repo, UserService $UserService)
+    public function __construct(ProfileRepositoryInterface $repo, UserService $UserService)
     {
         $this->repo = $repo;
         $this->UserService = $UserService;
     }
 
 
-    public function getAllprofiles()
+    public function getAllProfiles()
     {
         return $this->repo->all(['user']);
     }
 
 
-    public function create(array $data, int $userId): profile
+    public function create(array $data, int $userId): Profile
     {
         $existingProfile = $this->repo->findByUserId($userId);
 
@@ -42,13 +40,13 @@ class profileService
 
 
 
-    public function getprofileById($id): ?profile
+    public function getProfileById($id): ?Profile
     {
         $profile = $this->repo->getById($id, ['user']);
         return $profile;
     }
 
-    public function update(profile $profile, array $data): profile
+    public function update(Profile $profile, array $data): Profile
     {
         return $this->repo->update($profile, $data);
     }

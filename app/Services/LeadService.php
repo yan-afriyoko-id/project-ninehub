@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Exceptions\Lead\LeadNotFoundException;
 use App\Interfaces\LeadRepositoryInterface;
 use App\Models\Lead;
-use App\Services\contactService;
+use App\Services\ContactService;
 use App\Events\LeadCreated;
 
 class LeadService
@@ -13,7 +13,7 @@ class LeadService
     protected $repo;
     protected $contactService;
 
-    public function __construct(LeadRepositoryInterface $repo, contactService $contactService)
+    public function __construct(LeadRepositoryInterface $repo, ContactService $contactService)
     {
         $this->repo = $repo;
         $this->contactService = $contactService;

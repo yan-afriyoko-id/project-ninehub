@@ -1,15 +1,15 @@
 <?php
 
 namespace App\Interfaces;
-use App\Models\profile;
 
-interface profileRepositoryInterface
+use App\Models\Profile;
+
+interface ProfileRepositoryInterface
 {
     public function all(array $relations = []): iterable;
-    public function create(array $data): profile;
-    public function getById($id, array $relations = []): ?profile;
-    public function update(profile $profile, array $data): profile;
+    public function create(array $data): Profile;
+    public function getById($id, array $relations = []): ?Profile;
+    public function update(Profile $profile, array $data): Profile;
     public function delete($id): bool;
     public function findByUserId(int $userId): ?Profile;
-
 }

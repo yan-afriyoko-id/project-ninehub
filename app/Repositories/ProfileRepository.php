@@ -2,27 +2,27 @@
 
 namespace App\Repositories;
 
-use App\Models\profile;
-use App\Interfaces\profileRepositoryInterface;
+use App\Models\Profile;
+use App\Interfaces\ProfileRepositoryInterface;
 
-class profileRepository implements profileRepositoryInterface
+class ProfileRepository implements ProfileRepositoryInterface
 {
     public function all(array $relations = []): iterable
     {
-        return profile::with($relations)->get();
+        return Profile::with($relations)->get();
     }
 
-    public function create(array $data): profile
+    public function create(array $data): Profile
     {
-        return profile::create($data);
+        return Profile::create($data);
     }
 
-    public function getById($id, array $relations = []): ?profile
+    public function getById($id, array $relations = []): ?Profile
     {
-        return profile::with($relations)->find($id);
+        return Profile::with($relations)->find($id);
     }
 
-    public function update(profile $profile, array $data): profile
+    public function update(Profile $profile, array $data): Profile
     {
         $profile->update($data);
         return $profile;
@@ -40,5 +40,4 @@ class profileRepository implements profileRepositoryInterface
     {
         return Profile::where('user_id', $userId)->first();
     }
-
 }
