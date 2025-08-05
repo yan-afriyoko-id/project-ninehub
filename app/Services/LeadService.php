@@ -2,51 +2,82 @@
 
 namespace App\Services;
 
-use App\Exceptions\Lead\LeadNotFoundException;
-use App\Interfaces\LeadRepositoryInterface;
 use App\Models\Lead;
-use App\Services\ContactService;
-use App\Events\LeadCreated;
+use App\Repositories\Interfaces\LeadRepositoryInterface;
+use App\Services\Interfaces\LeadServiceInterface;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
-class LeadService
+class LeadService implements LeadServiceInterface
 {
-    protected $repo;
-    protected $contactService;
+    private LeadRepositoryInterface $repository;
 
-    public function __construct(LeadRepositoryInterface $repo, ContactService $contactService)
+    public function __construct(LeadRepositoryInterface $repository)
     {
-        $this->repo = $repo;
-        $this->contactService = $contactService;
+        $this->repository = $repository;
     }
 
-
-    public function getAllLeads()
+    /**
+     * Get all leads with optional filters.
+     */
+    public function getAllLeads(array $filters = []): LengthAwarePaginator
     {
-        return $this->repo->all(['contact']);
+        return $this->repository->paginate($filters);
     }
 
-
-    public function create(array $data): Lead
+    /**
+     * Get lead by ID.
+     */
+    public function getLeadById(int $id): ?Lead
     {
-        $Lead = $this->repo->create($data);
-        return $Lead;
+        return $this->repository->find($id);
     }
 
-
-    public function getLeadById($id): ?Lead
+    /**
+     * Create a new lead.
+     */
+    public function createLead(array $data): Lead
     {
-        $Lead = $this->repo->getById($id, ['contact']);
-        return $Lead;
+        return $this->repository->create($data);
     }
 
-    public function update(Lead $Lead, array $data): Lead
+    /**
+     * Update an existing lead.
+     */
+    public function updateLead(int $id, array $data): Lead
     {
-        return $this->repo->update($Lead, $data);
+        return $this->repository->update($id, $data);
     }
 
-    public function delete($id): bool
+    /**
+     * Delete a lead.
+     */
+    public function deleteLead(int $id): bool
     {
-        $deleted = $this->repo->delete($id);
-        return true;
+        return $this->repository->delete($id);
+    }
+
+    /**
+     * Get leads by contact.
+     */
+    public function getLeadsByContact(int $contactId): Collection
+    {
+        return $this->repository->getLeadsByContact($contactId);
+    }
+
+    /**
+     * Search leads by title or description.
+     */
+    public function searchLeads(string $search): Collection
+    {
+        return $this->repository->searchLeads($search);
+    }
+
+    /**
+     * Get lead statistics.
+     */
+    public function getLeadStatistics(): array
+    {
+        return $this->repository->getLeadStatistics();
     }
 }

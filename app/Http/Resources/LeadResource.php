@@ -5,18 +5,13 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @property int $id
- * @property string $name
- * @property string|null $email
- * @property string|null $phone
- * @property string|null $source
- * @property string $status
- * @property float|null $potential_value
- * @property string|null $notes
- */
 class LeadResource extends JsonResource
 {
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
@@ -28,7 +23,16 @@ class LeadResource extends JsonResource
             'status' => $this->status,
             'potential_value' => $this->potential_value,
             'notes' => $this->notes,
-            'contact' => new ContactResource($this->whenLoaded('contact')),
+            'contact' => $this->whenLoaded('contact', function () {
+                return [
+                    'id' => $this->contact->id,
+                    'first_name' => $this->contact->first_name,
+                    'last_name' => $this->contact->last_name,
+                    'email' => $this->contact->email,
+                ];
+            }),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }
