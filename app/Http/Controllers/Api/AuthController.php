@@ -73,11 +73,28 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->tokens()->delete();
+        try {
+            $user = $request->user();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Logout successful.',
-        ]);
+            if ($user) {
+                $user->tokens()->delete();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Logout successful.',
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated.',
+            ], Response::HTTP_UNAUTHORIZED);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to logout.',
+                'error' => $e->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

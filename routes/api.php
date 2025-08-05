@@ -37,6 +37,10 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    // Authentication Routes
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/profile', [AuthController::class, 'profile']);
+
     // Profile Management Routes
     Route::prefix('profiles')->group(function () {
         Route::get('/', [ProfileController::class, 'index']);
