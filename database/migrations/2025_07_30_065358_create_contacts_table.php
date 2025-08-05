@@ -17,6 +17,7 @@ return new class extends Migration {
             $table->string('email')->unique();
             $table->string('phone')->nullable();
             $table->string('job_title')->nullable();
+            $table->foreignId('company_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }
