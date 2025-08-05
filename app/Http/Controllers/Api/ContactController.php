@@ -3,49 +3,215 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreContactRequest;
+use App\Http\Requests\Contact\StoreContactRequest;
+use App\Http\Requests\Contact\UpdateContactRequest;
 use App\Http\Resources\ContactResource;
-use App\Services\ContactService;
-use Illuminate\Support\Facades\Auth;
+use App\Services\Interfaces\ContactServiceInterface;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ContactController extends Controller
 {
-    protected $service;
+    private ContactServiceInterface $contactService;
 
-    public function __construct(ContactService $service)
+    public function __construct(ContactServiceInterface $contactService)
     {
-        $this->service = $service;
+        $this->contactService = $contactService;
     }
 
-    public function index()
+    /**
+     * Display a listing of contacts.
+     */
+    public function index(Request $request): JsonResponse
     {
-        $Contacts = $this->service->getAllContacts();
-        return ContactResource::collection($Contacts);
+        try {
+            $filters = $request->only(['search', 'company_id', 'per_page']);
+            $contacts = $this->contactService->getAllContacts($filters);
+
+            return response()->json([
+                'success' => true,
+                'data' => ContactResource::collection($contacts),
+                'pagination' => [
+                    'current_page' => $contacts->currentPage(),
+                    'last_page' => $contacts->lastPage(),
+                    'per_page' => $contacts->perPage(),
+                    'total' => $contacts->total(),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve contacts',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
-    public function store(StoreContactRequest $request)
+    /**
+     * Store a newly created contact.
+     */
+    public function store(StoreContactRequest $request): JsonResponse
     {
-        $Contact = $this->service->create($request->validated());
-        return new ContactResource($Contact);
+        try {
+            $contact = $this->contactService->createContact($request->validated());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Contact created successfully',
+                'data' => new ContactResource($contact),
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create contact',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
-    public function show($id)
+    /**
+     * Display the specified contact.
+     */
+    public function show(int $id): JsonResponse
     {
-        $Contact = $this->service->getContactById($id);
-        return new ContactResource($Contact);
+        try {
+            $contact = $this->contactService->getContactById($id);
+
+            if (!$contact) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Contact not found',
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => new ContactResource($contact),
+                'message' => 'Contact retrieved successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve contact',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
-    public function update(StoreContactRequest $request, $id)
+    /**
+     * Update the specified contact.
+     */
+    public function update(UpdateContactRequest $request, int $id): JsonResponse
     {
-        $Contact = $this->service->getContactById($id);
-        $updated = $this->service->update($Contact, $request->validated());
-        return new ContactResource($updated);
+        try {
+            $contact = $this->contactService->updateContact($id, $request->validated());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Contact updated successfully',
+                'data' => new ContactResource($contact),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update contact',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
-    public function destroy($id)
+    /**
+     * Remove the specified contact.
+     */
+    public function destroy(int $id): JsonResponse
     {
-        $this->service->delete($id);
-        return response()->noContent();
+        try {
+            $result = $this->contactService->deleteContact($id);
+
+            if (!$result) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to delete contact',
+                ], 500);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Contact deleted successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete contact',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get contacts by company.
+     */
+    public function byCompany(int $companyId): JsonResponse
+    {
+        try {
+            $contacts = $this->contactService->getContactsByCompany($companyId);
+
+            return response()->json([
+                'success' => true,
+                'data' => ContactResource::collection($contacts),
+                'message' => 'Contacts retrieved successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve contacts',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Search contacts.
+     */
+    public function search(Request $request): JsonResponse
+    {
+        try {
+            $search = $request->get('q', '');
+            $contacts = $this->contactService->searchContacts($search);
+
+            return response()->json([
+                'success' => true,
+                'data' => ContactResource::collection($contacts),
+                'message' => 'Contacts retrieved successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to search contacts',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get contact statistics.
+     */
+    public function statistics(): JsonResponse
+    {
+        try {
+            $statistics = $this->contactService->getContactStatistics();
+
+            return response()->json([
+                'success' => true,
+                'data' => $statistics,
+                'message' => 'Contact statistics retrieved successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve contact statistics',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

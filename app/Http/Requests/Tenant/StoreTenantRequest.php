@@ -38,14 +38,17 @@ class StoreTenantRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Nama tenant wajib diisi',
-            'name.max' => 'Nama tenant maksimal 255 karakter',
-            'email.email' => 'Format email tidak valid',
-            'phone.max' => 'Nomor telepon maksimal 50 karakter',
-            'user_id.required' => 'User ID wajib diisi',
-            'user_id.exists' => 'User tidak ditemukan',
-            'plan_id.required' => 'Plan ID wajib diisi',
-            'plan_id.exists' => 'Plan tidak ditemukan',
+            'name.required' => 'Tenant name is required',
+            'name.max' => 'Tenant name must be less than 255 characters',
+            'email.email' => 'Tenant email must be a valid email',
+            'phone.max' => 'Tenant phone must be less than 50 characters',
+            'logo.string' => 'Tenant logo must be a text',
+            'logo.max' => 'Tenant logo must be less than 255 characters',
+            'user_id.required' => 'User ID is required',
+            'user_id.exists' => 'User not found',
+            'plan_id.required' => 'Plan ID is required',
+            'plan_id.exists' => 'Plan not found',
+            'is_active.boolean' => 'Is active must be a boolean',
         ];
     }
 }

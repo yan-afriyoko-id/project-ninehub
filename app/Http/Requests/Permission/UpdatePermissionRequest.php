@@ -37,11 +37,11 @@ class UpdatePermissionRequest extends FormRequest
         return [
             'name.required' => 'Permission name is required.',
             'name.string' => 'Permission name must be a string.',
-            'name.max' => 'Permission name cannot exceed 255 characters.',
+            'name.max' => 'Permission name must be less than 255 characters.',
             'name.unique' => 'Permission name already exists.',
             'guard_name.required' => 'Guard name is required.',
             'guard_name.string' => 'Guard name must be a string.',
-            'guard_name.max' => 'Guard name cannot exceed 255 characters.',
+            'guard_name.max' => 'Guard name must be less than 255 characters.',
             'guard_name.in' => 'Guard name must be either web or api.',
         ];
     }

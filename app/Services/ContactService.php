@@ -2,52 +2,82 @@
 
 namespace App\Services;
 
-use App\Exceptions\Contact\ContactNotFoundException;
-use App\Interfaces\ContactRepositoryInterface;
 use App\Models\Contact;
-use App\Services\UserService;
-use App\Events\ContactCreated;
+use App\Repositories\Interfaces\ContactRepositoryInterface;
+use App\Services\Interfaces\ContactServiceInterface;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
-class ContactService
+class ContactService implements ContactServiceInterface
 {
-    protected $repo;
-    protected $UserService;
+    private ContactRepositoryInterface $repository;
 
-    public function __construct(ContactRepositoryInterface $repo, UserService $UserService)
+    public function __construct(ContactRepositoryInterface $repository)
     {
-        $this->repo = $repo;
-        $this->UserService = $UserService;
+        $this->repository = $repository;
     }
 
-
-    public function getAllContacts()
+    /**
+     * Get all contacts with optional filters.
+     */
+    public function getAllContacts(array $filters = []): LengthAwarePaginator
     {
-        return $this->repo->all();
+        return $this->repository->paginate($filters);
     }
 
-
-    public function create(array $data): Contact
+    /**
+     * Get contact by ID.
+     */
+    public function getContactById(int $id): ?Contact
     {
-        $Contact = $this->repo->create($data);
-        return $Contact;
+        return $this->repository->find($id);
     }
 
-
-
-    public function getContactById($id): ?Contact
+    /**
+     * Create a new contact.
+     */
+    public function createContact(array $data): Contact
     {
-        $Contact = $this->repo->getById($id);
-        return $Contact;
+        return $this->repository->create($data);
     }
 
-    public function update(Contact $Contact, array $data): Contact
+    /**
+     * Update an existing contact.
+     */
+    public function updateContact(int $id, array $data): Contact
     {
-        return $this->repo->update($Contact, $data);
+        return $this->repository->update($id, $data);
     }
 
-    public function delete($id): bool
+    /**
+     * Delete a contact.
+     */
+    public function deleteContact(int $id): bool
     {
-        $deleted = $this->repo->delete($id);
-        return true;
+        return $this->repository->delete($id);
+    }
+
+    /**
+     * Get contacts by company.
+     */
+    public function getContactsByCompany(int $companyId): Collection
+    {
+        return $this->repository->getContactsByCompany($companyId);
+    }
+
+    /**
+     * Search contacts by name or email.
+     */
+    public function searchContacts(string $search): Collection
+    {
+        return $this->repository->searchContacts($search);
+    }
+
+    /**
+     * Get contact statistics.
+     */
+    public function getContactStatistics(): array
+    {
+        return $this->repository->getContactStatistics();
     }
 }
