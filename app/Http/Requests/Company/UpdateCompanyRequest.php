@@ -26,7 +26,7 @@ class UpdateCompanyRequest extends FormRequest
             'name' => 'sometimes|required|string|max:255',
             'email' => [
                 'sometimes',
-                'required',
+                'nullable',
                 'email',
                 'max:255',
             ],
@@ -47,7 +47,6 @@ class UpdateCompanyRequest extends FormRequest
             'name.required' => 'Company name is required',
             'name.string' => 'Company name must be a text',
             'name.max' => 'Company name must be less than 255 characters',
-            'email.required' => 'Company email is required',
             'email.email' => 'Company email must be a valid email',
             'email.max' => 'Company email must be less than 255 characters',
             'email.unique' => 'Company email already exists',
