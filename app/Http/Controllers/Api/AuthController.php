@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
-use App\Http\Resources\auth\AuthResponse;
+use App\Http\Resources\UserResource;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,52 +20,81 @@ class AuthController extends Controller
         $this->userService = $userService;
     }
 
-    public function register(RegisterRequest $request): AuthResponse
+    public function register(RegisterRequest $request)
     {
         $user = $this->userService->createUser($request->validated());
 
-        $user->load(['tenant.domains', 'profile']);
+        $user->load(['tenant.domains', 'roles', 'permissions']);
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
         $user->token = $token;
 
-        return AuthResponse::success($user, 'Registration successful.', Response::HTTP_CREATED);
+        return response()->json([
+            'success' => true,
+            'message' => 'Registration successful.',
+            'data' => new UserResource($user),
+        ], Response::HTTP_CREATED);
     }
 
-
-    public function login(LoginRequest $request): AuthResponse
+    public function login(LoginRequest $request)
     {
         if (!Auth::attempt($request->validated())) {
-            return AuthResponse::error('Invalid credentials.', Response::HTTP_UNAUTHORIZED);
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid credentials.',
+            ], Response::HTTP_UNAUTHORIZED);
         }
 
         $user = Auth::user();
 
-        $user->load('tenant.domains');
+        $user->load(['tenant.domains', 'roles', 'permissions']);
 
         $user->token = $user->createToken('auth-token')->plainTextToken;
 
-        return AuthResponse::success($user, 'Login successful.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Login successful.',
+            'data' => new UserResource($user),
+        ]);
     }
 
-    public function profile(Request $request): AuthResponse
+    public function profile(Request $request)
     {
         $user = $request->user();
-        $data = [
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-            ],
-        ];
-        return AuthResponse::success($data, 'User profile retrieved successfully.');
+        $user->load(['roles', 'permissions']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User profile retrieved successfully.',
+            'data' => new UserResource($user),
+        ]);
     }
 
-    public function logout(Request $request): AuthResponse
+    public function logout(Request $request)
     {
-        $request->user()->tokens()->delete();
+        try {
+            $user = $request->user();
 
-        return AuthResponse::success([], 'Logout successful.');
+            if ($user) {
+                $user->tokens()->delete();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Logout successful.',
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated.',
+            ], Response::HTTP_UNAUTHORIZED);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to logout.',
+                'error' => $e->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }
