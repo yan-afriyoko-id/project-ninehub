@@ -6,6 +6,7 @@ use App\Interfaces\UserRepositoryInterface;
 use App\Models\User;
 use App\Models\Profile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use App\Models\Tenant;
 use Stancl\Tenancy\Database\Models\Domain;
 use Illuminate\Support\Str;
@@ -49,11 +50,18 @@ class UserService
 
         $user = $this->repo->create($preparedData);
 
-        // Auto-create profile for the new user
-        Profile::create([
-            'name' => $data['name'],
-            'user_id' => $user->id,
-        ]);
+        // Auto-create profile for the new user (optional)
+        try {
+            Profile::create([
+                'name' => $data['name'],
+                'user_id' => $user->id,
+            ]);
+        } catch (\Exception $e) {
+            // Log error but don't fail user creation
+            Log::warning('Failed to create profile for user: ' . $user->id, [
+                'error' => $e->getMessage()
+            ]);
+        }
 
         return $user;
     }

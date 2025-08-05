@@ -43,7 +43,24 @@ class AuthResponse extends JsonResource
 
         if (!empty($this->resource)) {
             if (is_object($this->resource)) {
-                $response['data'] = $this->resource;
+                $userData = [
+                    'id' => $this->resource->id,
+                    'name' => $this->resource->name,
+                    'email' => $this->resource->email,
+                    'token' => $this->resource->token ?? null,
+                ];
+
+                // Add roles if loaded
+                if ($this->resource->relationLoaded('roles')) {
+                    $userData['roles'] = $this->resource->roles->pluck('name');
+                }
+
+                // Add permissions if loaded
+                if ($this->resource->relationLoaded('permissions')) {
+                    $userData['permissions'] = $this->resource->permissions->pluck('name');
+                }
+
+                $response['data'] = $userData;
 
                 if (
                     method_exists($this->resource, 'tenant') &&
