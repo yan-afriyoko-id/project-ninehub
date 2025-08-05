@@ -4,7 +4,6 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\UserResource;
 
 /**
  * @property int $id
@@ -28,7 +27,7 @@ class ProfileResource extends JsonResource
             'phone_number' => $this->phone_number,
             'address' => $this->address,
             'birth_date' => $this->birth_date,
-            'user' => new UserResource($this->whenLoaded('user')),
+            'user_id' => $this->user_id,
         ];
     }
 }
