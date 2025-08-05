@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\UpdateTenantSettingRequest;
+use App\Http\Requests\TenantSetting\UpdateTenantSettingRequest;
 use App\Http\Resources\TenantSettingResource;
 use App\Services\TenantSettingService;
 
@@ -27,5 +27,4 @@ class TenantSettingController extends Controller
         $this->service->updateSettings($request->validated());
         return response()->json(['message' => 'Settings updated']);
     }
-
 }

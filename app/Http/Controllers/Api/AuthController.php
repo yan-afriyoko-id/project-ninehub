@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\LoginRequest;
-use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Services\UserService;
 use Illuminate\Http\Request;
@@ -55,18 +55,6 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Login successful.',
-            'data' => new UserResource($user),
-        ]);
-    }
-
-    public function profile(Request $request)
-    {
-        $user = $request->user();
-        $user->load(['roles', 'permissions']);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'User profile retrieved successfully.',
             'data' => new UserResource($user),
         ]);
     }
