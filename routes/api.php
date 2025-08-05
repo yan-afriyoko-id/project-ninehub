@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\TenantController;
 
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\PlanController;
 use Illuminate\Support\Facades\Route;
 
@@ -86,6 +87,29 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::get('/settings', [TenantSettingController::class, 'show']);
     Route::put('/settings', [TenantSettingController::class, 'update']);
+
+    // Settings routes
+    Route::prefix('settings')->group(function () {
+        Route::get('/', [SettingController::class, 'index']);
+        Route::post('/', [SettingController::class, 'store']);
+        Route::get('/{id}', [SettingController::class, 'show']);
+        Route::put('/{id}', [SettingController::class, 'update']);
+        Route::delete('/{id}', [SettingController::class, 'destroy']);
+
+        // Enhanced search and filter routes
+        Route::get('/group/{group}', [SettingController::class, 'byGroup']);
+        Route::get('/key/{key}', [SettingController::class, 'byKey']);
+        Route::get('/user/{userId}', [SettingController::class, 'byUser']);
+        Route::get('/type/{type}', [SettingController::class, 'byType']);
+        Route::get('/public', [SettingController::class, 'public']);
+        Route::get('/private', [SettingController::class, 'private']);
+        Route::get('/search', [SettingController::class, 'search']);
+        Route::get('/statistics', [SettingController::class, 'statistics']);
+
+        // Key-based operations
+        Route::get('/value/{key}', [SettingController::class, 'getValue']);
+        Route::post('/value/{key}', [SettingController::class, 'setValue']);
+    });
 });
 
 // Tenant Management Routes
