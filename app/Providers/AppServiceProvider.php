@@ -20,6 +20,8 @@ use App\Repositories\RoleRepository;
 use App\Repositories\Interfaces\RoleRepositoryInterface;
 use App\Repositories\PlanRepository;
 use App\Repositories\Interfaces\PlanRepositoryInterface;
+use App\Repositories\SettingRepository;
+use App\Repositories\Interfaces\SettingRepositoryInterface;
 use App\Services\TenantService;
 use App\Services\Interfaces\TenantServiceInterface;
 use App\Services\PermissionService;
@@ -32,6 +34,7 @@ use App\Services\UserService;
 use App\Services\LeadService;
 use App\Services\ContactService;
 use App\Services\CompanyService;
+use App\Services\SettingService;
 use App\Services\TenantSettingService;
 use Illuminate\Support\ServiceProvider;
 
@@ -56,6 +59,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PermissionRepositoryInterface::class, PermissionRepository::class);
         $this->app->bind(RoleRepositoryInterface::class, RoleRepository::class);
         $this->app->bind(PlanRepositoryInterface::class, PlanRepository::class);
+        $this->app->bind(SettingRepositoryInterface::class, SettingRepository::class);
 
         $this->app->bind(TenantServiceInterface::class, TenantService::class);
         $this->app->bind(PermissionServiceInterface::class, PermissionService::class);
@@ -70,6 +74,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(\App\Services\Interfaces\ContactServiceInterface::class, ContactService::class);
         $this->app->bind(CompanyService::class, CompanyService::class);
         $this->app->bind(\App\Services\Interfaces\CompanyServiceInterface::class, CompanyService::class);
+        $this->app->bind(\App\Services\Interfaces\SettingServiceInterface::class, SettingService::class);
         $this->app->bind(TenantSettingService::class, TenantSettingService::class);
     }
 
