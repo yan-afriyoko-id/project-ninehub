@@ -5,19 +5,13 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @property int $id
- * @property string $name
- * @property string|null $industry
- * @property string|null $phone
- * @property string|null $email
- * @property string|null $address
- * @property string|null $website
- * @property string|null $description
- * @property int $user_id
- */
 class CompanyResource extends JsonResource
 {
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
@@ -29,7 +23,18 @@ class CompanyResource extends JsonResource
             'address' => $this->address,
             'website' => $this->website,
             'description' => $this->description,
-            'user' => new UserResource($this->whenLoaded('user')),
+            'user' => $this->whenLoaded('user', function () {
+                return [
+                    'id' => $this->user->id,
+                    'name' => $this->user->name,
+                    'email' => $this->user->email,
+                ];
+            }),
+            'contacts_count' => $this->whenLoaded('contacts', function () {
+                return $this->contacts->count();
+            }),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }
