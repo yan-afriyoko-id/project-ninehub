@@ -48,7 +48,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [ProfileController::class, 'destroy']);
     });
 
-    Route::apiResource('contact', ContactController::class);
+    // Contact Management Routes
+    Route::prefix('contacts')->group(function () {
+        Route::get('/', [ContactController::class, 'index']);
+        Route::post('/', [ContactController::class, 'store']);
+        Route::get('/statistics', [ContactController::class, 'statistics']);
+        Route::get('/search', [ContactController::class, 'search']);
+        Route::get('/company/{companyId}', [ContactController::class, 'byCompany']);
+        Route::get('/{id}', [ContactController::class, 'show']);
+        Route::put('/{id}', [ContactController::class, 'update']);
+        Route::delete('/{id}', [ContactController::class, 'destroy']);
+    });
     Route::apiResource('company', CompanyController::class);
     Route::apiResource('lead', LeadController::class);
     Route::get('/settings', [TenantSettingController::class, 'show']);

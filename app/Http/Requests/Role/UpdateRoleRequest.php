@@ -22,14 +22,14 @@ class UpdateRoleRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Nama role wajib diisi.',
-            'name.string' => 'Nama role harus berupa teks.',
-            'name.max' => 'Nama role maksimal 255 karakter.',
-            'name.unique' => 'Nama role sudah digunakan.',
-            'guard_name.required' => 'Guard name wajib diisi.',
-            'guard_name.string' => 'Guard name harus berupa teks.',
-            'guard_name.max' => 'Guard name maksimal 255 karakter.',
-            'guard_name.in' => 'Guard name harus web atau api.',
+            'name.required' => 'Role name is required.',
+            'name.string' => 'Role name must be a text.',
+            'name.max' => 'Role name must be less than 255 characters.',
+            'name.unique' => 'Role name already exists.',
+            'guard_name.required' => 'Guard name is required.',
+            'guard_name.string' => 'Guard name must be a text.',
+            'guard_name.max' => 'Guard name must be less than 255 characters.',
+            'guard_name.in' => 'Guard name must be web or api.',
         ];
     }
 }
