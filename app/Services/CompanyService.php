@@ -2,50 +2,82 @@
 
 namespace App\Services;
 
-use App\Interfaces\CompanyRepositoryInterface;
 use App\Models\Company;
-use App\Services\UserService;
-use App\Events\CompanyCreated;
+use App\Repositories\Interfaces\CompanyRepositoryInterface;
+use App\Services\Interfaces\CompanyServiceInterface;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
-class CompanyService
+class CompanyService implements CompanyServiceInterface
 {
-    protected $repo;
-    protected $UserService;
+    private CompanyRepositoryInterface $repository;
 
-    public function __construct(CompanyRepositoryInterface $repo, UserService $UserService)
+    public function __construct(CompanyRepositoryInterface $repository)
     {
-        $this->repo = $repo;
-        $this->UserService = $UserService;
+        $this->repository = $repository;
     }
 
-
-    public function getAllCompanys()
+    /**
+     * Get all companies with optional filters.
+     */
+    public function getAllCompanies(array $filters = []): LengthAwarePaginator
     {
-        return $this->repo->all(['user']);
+        return $this->repository->paginate($filters);
     }
 
-
-    public function create(array $data, int $userId): Company
+    /**
+     * Get company by ID.
+     */
+    public function getCompanyById(int $id): ?Company
     {
-        $preparedData = array_merge($data, ['user_id' => $userId]);
-        $Company = $this->repo->create($preparedData);
-        return $Company;
+        return $this->repository->find($id);
     }
 
-    public function getCompanyById($id): ?Company
+    /**
+     * Create a new company.
+     */
+    public function createCompany(array $data): Company
     {
-        $Company = $this->repo->getById($id, ['user']);
-        return $Company;
+        return $this->repository->create($data);
     }
 
-    public function update(Company $Company, array $data): Company
+    /**
+     * Update an existing company.
+     */
+    public function updateCompany(int $id, array $data): Company
     {
-        return $this->repo->update($Company, $data);
+        return $this->repository->update($id, $data);
     }
 
-    public function delete($id): bool
+    /**
+     * Delete a company.
+     */
+    public function deleteCompany(int $id): bool
     {
-        $deleted = $this->repo->delete($id);
-        return true;
+        return $this->repository->delete($id);
+    }
+
+    /**
+     * Get companies by user.
+     */
+    public function getCompaniesByUser(int $userId): Collection
+    {
+        return $this->repository->getCompaniesByUser($userId);
+    }
+
+    /**
+     * Search companies by name or email.
+     */
+    public function searchCompanies(string $search): Collection
+    {
+        return $this->repository->searchCompanies($search);
+    }
+
+    /**
+     * Get company statistics.
+     */
+    public function getCompanyStatistics(): array
+    {
+        return $this->repository->getCompanyStatistics();
     }
 }

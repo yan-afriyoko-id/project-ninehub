@@ -47,7 +47,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ContactRepositoryInterface::class, ContactRepository::class);
         $this->app->bind(\App\Repositories\Interfaces\ContactRepositoryInterface::class, ContactRepository::class);
         $this->app->bind(CompanyRepositoryInterface::class, CompanyRepository::class);
+        $this->app->bind(\App\Repositories\Interfaces\CompanyRepositoryInterface::class, CompanyRepository::class);
         $this->app->bind(LeadRepositoryInterface::class, LeadRepository::class);
+        $this->app->bind(\App\Repositories\Interfaces\LeadRepositoryInterface::class, LeadRepository::class);
         $this->app->bind(TenantRepositoryInterface::class, TenantRepository::class);
 
         // Bind additional services
@@ -63,9 +65,11 @@ class AppServiceProvider extends ServiceProvider
         // Bind concrete services
         $this->app->bind(UserService::class, UserService::class);
         $this->app->bind(LeadService::class, LeadService::class);
+        $this->app->bind(\App\Services\Interfaces\LeadServiceInterface::class, LeadService::class);
         $this->app->bind(ContactService::class, ContactService::class);
         $this->app->bind(\App\Services\Interfaces\ContactServiceInterface::class, ContactService::class);
         $this->app->bind(CompanyService::class, CompanyService::class);
+        $this->app->bind(\App\Services\Interfaces\CompanyServiceInterface::class, CompanyService::class);
         $this->app->bind(TenantSettingService::class, TenantSettingService::class);
     }
 

@@ -59,8 +59,28 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [ContactController::class, 'update']);
         Route::delete('/{id}', [ContactController::class, 'destroy']);
     });
-    Route::apiResource('company', CompanyController::class);
-    Route::apiResource('lead', LeadController::class);
+    // Company Management Routes
+    Route::prefix('companies')->group(function () {
+        Route::get('/', [CompanyController::class, 'index']);
+        Route::post('/', [CompanyController::class, 'store']);
+        Route::get('/statistics', [CompanyController::class, 'statistics']);
+        Route::get('/search', [CompanyController::class, 'search']);
+        Route::get('/user/{userId}', [CompanyController::class, 'byUser']);
+        Route::get('/{id}', [CompanyController::class, 'show']);
+        Route::put('/{id}', [CompanyController::class, 'update']);
+        Route::delete('/{id}', [CompanyController::class, 'destroy']);
+    });
+    // Lead Management Routes
+    Route::prefix('leads')->group(function () {
+        Route::get('/', [LeadController::class, 'index']);
+        Route::post('/', [LeadController::class, 'store']);
+        Route::get('/statistics', [LeadController::class, 'statistics']);
+        Route::get('/search', [LeadController::class, 'search']);
+        Route::get('/contact/{contactId}', [LeadController::class, 'byContact']);
+        Route::get('/{id}', [LeadController::class, 'show']);
+        Route::put('/{id}', [LeadController::class, 'update']);
+        Route::delete('/{id}', [LeadController::class, 'destroy']);
+    });
     Route::get('/settings', [TenantSettingController::class, 'show']);
     Route::put('/settings', [TenantSettingController::class, 'update']);
 });
