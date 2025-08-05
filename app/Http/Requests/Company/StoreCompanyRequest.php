@@ -23,7 +23,7 @@ class StoreCompanyRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:companies,email',
+            'email' => 'nullable|email|max:255|unique:companies,email',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
             'website' => 'nullable|url|max:255',
@@ -41,7 +41,6 @@ class StoreCompanyRequest extends FormRequest
             'name.required' => 'Company name is required',
             'name.string' => 'Company name must be a text',
             'name.max' => 'Company name must be less than 255 characters',
-            'email.required' => 'Company email is required',
             'email.email' => 'Company email must be a valid email',
             'email.max' => 'Company email must be less than 255 characters',
             'email.unique' => 'Company email already exists',
