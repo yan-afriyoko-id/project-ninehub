@@ -36,7 +36,7 @@ Route::get('/chat/test', [ChatController::class, 'test'])->name('api.chat.test')
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/login-token', [AuthController::class, 'loginWithToken']);
+Route::post('/login/sso', [AuthController::class, 'loginSSO']);
 
 
 Route::middleware('auth:sanctum')->group(function () {

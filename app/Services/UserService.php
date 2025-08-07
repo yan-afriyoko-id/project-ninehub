@@ -65,4 +65,62 @@ class UserService
 
         return $user;
     }
+
+    /**
+     * Find or create user by email for SSO login
+     *
+     * @param string $email
+     * @param array $ssoUserData
+     * @return User|null
+     */
+    public function findOrCreateUserByEmail(string $email, array $ssoUserData): ?User
+    {
+        try {
+            // Cari user berdasarkan email
+            $user = User::where('email', $email)->first();
+
+            if ($user) {
+                // Update user data jika diperlukan
+                $user->update([
+                    'name' => $ssoUserData['name'] ?? $user->name,
+                ]);
+                return $user;
+            }
+
+            // Jika user tidak ditemukan, buat user baru
+            // Untuk SSO, kita perlu menentukan tenant_id
+            // Anda bisa menyesuaikan logika ini sesuai kebutuhan
+            $tenant = Tenant::first(); // Ambil tenant default atau sesuai logika bisnis
+
+            if (!$tenant) {
+                Log::error('No tenant found for SSO user creation');
+                return null;
+            }
+
+            $user = User::create([
+                'name' => $ssoUserData['name'] ?? 'SSO User',
+                'email' => $email,
+                'password' => Hash::make(Str::random(32)), // Password random untuk SSO user
+                'tenant_id' => $tenant->id,
+            ]);
+
+            // Buat profile untuk user baru
+            try {
+                Profile::create([
+                    'name' => $ssoUserData['name'] ?? 'SSO User',
+                    'user_id' => $user->id,
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('Failed to create profile for SSO user: ' . $user->id, [
+                    'error' => $e->getMessage()
+                ]);
+            }
+
+            return $user;
+
+        } catch (\Exception $e) {
+            Log::error('Failed to find or create SSO user: ' . $e->getMessage());
+            return null;
+        }
+    }
 }

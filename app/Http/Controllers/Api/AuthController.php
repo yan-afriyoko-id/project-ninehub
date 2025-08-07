@@ -7,17 +7,22 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Services\UserService;
+use App\Services\SSOService;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
 {
     protected $userService;
+    protected $ssoService;
 
-    public function __construct(UserService $userService)
+    public function __construct(UserService $userService, SSOService $ssoService)
     {
         $this->userService = $userService;
+        $this->ssoService = $ssoService;
     }
 
     public function register(RegisterRequest $request)
@@ -85,62 +90,64 @@ class AuthController extends Controller
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
-    public function loginWithToken(Request $request)
-    {
-        $request->validate([
-            'token' => 'required|string',
-        ]);
 
-        $scatumToken = $request->input('token');
-
-        // Verifikasi token ke Scatum
-        $userInfo = $this->verifyScatumToken($scatumToken);
-
-        if (!$userInfo || !isset($userInfo['email'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid or expired Scatum token.',
-            ], Response::HTTP_UNAUTHORIZED);
-        }
-
-        // Cari atau buat user berdasarkan email
-        $user = User::firstOrCreate(
-            ['email' => $userInfo['email']],
-            [
-                'name' => $userInfo['name'] ?? 'Scatum User',
-                'password' => bcrypt(Str::random(16)), // random karena tidak login manual
-            ]
-        );
-
-        $user->load(['tenant.domains', 'roles', 'permissions']);
-
-        $user->token = $user->createToken('auth-token')->plainTextToken;
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Login via Scatum successful.',
-            'data' => new UserResource($user),
-        ]);
-    }
-    private function verifyScatumToken($token)
+    /**
+     * Login SSO menggunakan token Sanctum yang sudah ada
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function loginSSO(Request $request)
     {
         try {
-            $client = new \GuzzleHttp\Client();
-            $response = $client->get('https://scatum.example.com/api/verify-token', [
-                'headers' => [
-                    'Authorization' => "Bearer $token",
-                    'Accept' => 'application/json',
-                ],
+            $request->validate([
+                'token' => 'required|string',
+                'email' => 'required|email',
             ]);
 
-            if ($response->getStatusCode() !== 200) {
-                return null;
+            $token = $request->input('token');
+            $email = $request->input('email');
+
+            // Verifikasi token Sanctum yang sudah ada
+            $ssoUser = $this->ssoService->verifyToken($token, $email);
+
+            if (!$ssoUser) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid token or user not found.',
+                ], Response::HTTP_UNAUTHORIZED);
             }
 
-            return json_decode($response->getBody(), true);
+            // Ambil user dari token Sanctum
+            $user = $this->ssoService->getUserFromToken($token);
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not found from token.',
+                ], Response::HTTP_NOT_FOUND);
+            }
+
+            // Load relasi user
+            $user->load(['tenant.domains', 'roles', 'permissions']);
+
+            // Gunakan token yang sudah ada (tidak perlu buat token baru)
+            $user->token = $token;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'SSO login successful.',
+                'data' => new UserResource($user),
+            ]);
+
         } catch (\Exception $e) {
-            return null;
+            return response()->json([
+                'success' => false,
+                'message' => 'SSO login failed.',
+                'error' => $e->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
 
 }

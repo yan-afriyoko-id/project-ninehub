@@ -82,7 +82,55 @@ http://localhost:8000/api
 }
 ```
 
-### 3. Get User Profile
+### 3. Login SSO
+
+**POST** `/api/login/sso`
+
+**Request Body:**
+
+```json
+{
+    "token": "1|abc123def456ghi789...",
+    "email": "user@example.com"
+}
+```
+
+**Parameters:**
+- `token` (required): Token Sanctum yang sudah ada dari login biasa
+- `email` (required): Email user yang sudah terdaftar
+
+**Response:**
+
+```json
+{
+    "success": true,
+    "message": "SSO login successful.",
+    "data": {
+        "id": 1,
+        "name": "SSO User",
+        "email": "user@example.com",
+        "token": "1|sso-token-abc123...",
+        "roles": ["user"],
+        "permissions": ["read-profile"],
+        "tenant": {
+            "id": "uuid",
+            "company": "Default Company",
+            "domains": ["default.com"]
+        }
+    }
+}
+```
+
+**Error Response:**
+
+```json
+{
+    "success": false,
+    "message": "Invalid SSO token or user not found."
+}
+```
+
+### 4. Get User Profile
 
 **GET** `/api/profile`
 
