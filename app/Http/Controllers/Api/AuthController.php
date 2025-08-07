@@ -85,4 +85,62 @@ class AuthController extends Controller
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+    public function loginWithToken(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string',
+        ]);
+
+        $scatumToken = $request->input('token');
+
+        // Verifikasi token ke Scatum
+        $userInfo = $this->verifyScatumToken($scatumToken);
+
+        if (!$userInfo || !isset($userInfo['email'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid or expired Scatum token.',
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        // Cari atau buat user berdasarkan email
+        $user = User::firstOrCreate(
+            ['email' => $userInfo['email']],
+            [
+                'name' => $userInfo['name'] ?? 'Scatum User',
+                'password' => bcrypt(Str::random(16)), // random karena tidak login manual
+            ]
+        );
+
+        $user->load(['tenant.domains', 'roles', 'permissions']);
+
+        $user->token = $user->createToken('auth-token')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Login via Scatum successful.',
+            'data' => new UserResource($user),
+        ]);
+    }
+    private function verifyScatumToken($token)
+    {
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->get('https://scatum.example.com/api/verify-token', [
+                'headers' => [
+                    'Authorization' => "Bearer $token",
+                    'Accept' => 'application/json',
+                ],
+            ]);
+
+            if ($response->getStatusCode() !== 200) {
+                return null;
+            }
+
+            return json_decode($response->getBody(), true);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
 }
