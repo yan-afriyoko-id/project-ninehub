@@ -37,6 +37,7 @@ use App\Services\CompanyService;
 use App\Services\SettingService;
 use App\Services\TenantSettingService;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Socialite\Facades\Socialite;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -83,6 +84,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Remove custom Socialite extension as it's not needed
+        // Laravel Socialite already handles Google provider automatically
     }
 }

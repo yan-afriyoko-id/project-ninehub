@@ -38,10 +38,16 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/login/sso', [AuthController::class, 'loginSSO']);
 
+// Google OAuth Routes
+Route::get('/auth/google', [AuthController::class, 'redirectToGoogle']);
+Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
+
 
 Route::middleware('auth:sanctum')->group(function () {
     // Authentication Routes
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/set-password', [AuthController::class, 'setPassword']);
+    Route::post('/complete-profile', [AuthController::class, 'completeProfile']);
 
     // Profile Management Routes
     Route::prefix('profiles')->group(function () {

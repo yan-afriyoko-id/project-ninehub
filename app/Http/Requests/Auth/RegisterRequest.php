@@ -25,6 +25,8 @@ class RegisterRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'company' => 'required|string|max:255',
+            'domain' => 'required|string|max:255',
         ];
     }
 
@@ -46,6 +48,12 @@ class RegisterRequest extends FormRequest
             'password.string' => 'Password must be a string',
             'password.min' => 'Password must be at least 8 characters',
             'password.confirmed' => 'Password confirmation does not match',
+            'company.required' => 'Company name is required',
+            'company.string' => 'Company name must be a string',
+            'company.max' => 'Company name must be less than 255 characters',
+            'domain.required' => 'Domain is required',
+            'domain.string' => 'Domain must be a string',
+            'domain.max' => 'Domain must be less than 255 characters',
         ];
     }
 }

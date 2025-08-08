@@ -4,8 +4,10 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use App\Models\User;
 use Laravel\Sanctum\PersonalAccessToken;
+use Laravel\Socialite\Facades\Socialite;
 
 class SSOService
 {
@@ -105,6 +107,62 @@ class SSOService
         } catch (\Exception $e) {
             Log::error('Token validation failed: ' . $e->getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Handle Google OAuth user data
+     *
+     * @param \Laravel\Socialite\Two\User $googleUser
+     * @return array
+     */
+    public function handleGoogleUser($googleUser)
+    {
+        return [
+            'email' => $googleUser->getEmail(),
+            'name' => $googleUser->getName(),
+            'google_id' => $googleUser->getId(),
+            'avatar' => $googleUser->getAvatar(),
+        ];
+    }
+
+    /**
+     * Create or update user from Google OAuth
+     *
+     * @param array $googleUserData
+     * @return User|null
+     */
+    public function createOrUpdateUserFromGoogle($googleUserData)
+    {
+        try {
+            $user = User::where('email', $googleUserData['email'])->first();
+
+            if ($user) {
+                $user->update([
+                    'name' => $googleUserData['name'],
+                ]);
+                return $user;
+            }
+
+            // Create new user without tenant (will be set later)
+            $user = User::create([
+                'name' => $googleUserData['name'],
+                'email' => $googleUserData['email'],
+                'password' => null, // No password for Google OAuth users
+                'tenant_id' => null, // No tenant yet, will be set in completeProfile
+            ]);
+
+            // Create profile
+            \App\Models\Profile::create([
+                'name' => $googleUserData['name'],
+                'user_id' => $user->id,
+            ]);
+
+            return $user;
+
+        } catch (\Exception $e) {
+            Log::error('Failed to create/update Google user: ' . $e->getMessage());
+            return null;
         }
     }
 } 
