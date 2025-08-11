@@ -23,7 +23,7 @@ class Plan extends Model
         'max_users',
         'max_storage',
         'features',
-        'is_active',
+        'is_active',            
     ];
 
     /**

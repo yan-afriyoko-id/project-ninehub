@@ -133,12 +133,12 @@ Route::prefix('tenants')->middleware('auth:sanctum')->group(function () {
 });
 
 // Plan Management Routes
-Route::prefix('plans')->middleware('auth:sanctum')->group(function () {
+Route::prefix('plans')->middleware(middleware: 'auth:sanctum')->group(function () {
     Route::get('/', [PlanController::class, 'index']);
     Route::post('/', [PlanController::class, 'store']);
     Route::get('/statistics', [PlanController::class, 'statistics']);
     Route::get('/active', [PlanController::class, 'active']);
-    Route::get('/free', [PlanController::class, 'free']);
+    Route::get('/free', [PlanController::class, 'free']); 
     Route::get('/paid', [PlanController::class, 'paid']);
     Route::get('/search', [PlanController::class, 'search']);
     Route::get('/{id}', [PlanController::class, 'show']);
